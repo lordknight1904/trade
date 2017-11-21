@@ -1,0 +1,37 @@
+.container {
+  max-width: 980px;
+  /*width: 100%;*/
+  padding: 15px;
+  margin: 0 auto;
+}
+.container > * {
+  margin-top: 48px;
+}
+.pricebox {
+  position: relative;
+  height: 40px;
+  width: 100%;
+  background-color: rgb(179, 213, 214);
+  font-size: 22px;
+  line-height: 40px;
+  border-bottom: 1px solid rgb(11, 112, 118);
+}
+.panelStyle {
+
+}
+.panelStyleTable {
+}
+.panelStyleTable > div:nth-child(odd){
+  background-color: #b3d5d6 !important;
+  background-image: none !important;
+  border-bottom: 2px solid #ffcd29 !important;
+}
+.panelStyleTable > div:nth-child(2){
+  padding: 0;
+}
+
+.panelStyle > div:nth-child(odd){
+  background-color: #b3d5d6 !important;
+  background-image: none !important;
+  border-bottom: 1px solid #ff3b50 !important;
+}

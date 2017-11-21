@@ -1,0 +1,102 @@
+.noneBlue a:active {
+  outline: none !important;
+}
+.noneBlue a:focus {
+  outline: none !important;
+}
+
+.header {
+  background: #eee url('../../header-bk.png') center;
+  background-size: cover;
+  border-bottom: 1px solid #ccc;
+}
+
+.content {
+  width: 100%;
+  max-width: 980px;
+  margin: auto;
+  padding: 64px 16px;
+  overflow: auto;
+}
+
+.site-title {
+  font-weight: 300;
+  font-size: 42px;
+  float: left;
+}
+
+.site-title a {
+  text-decoration: none;
+  color: #FFF;
+}
+
+.add-post-button {
+  display: inline-block;
+  color: #FFF;
+  background: #03A9F4;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 1000px;
+  float: right;
+}
+
+.language-switcher {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.language-switcher ul {
+  list-style: none;
+  width: 980px;
+  margin: auto;
+  text-align: right;
+}
+
+.language-switcher li {
+  display: inline-block;
+  margin: 10px;
+  padding: 5px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.language-switcher li:first-child {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.selected {
+  border-bottom: 1px solid #fff;
+}
+
+@media (max-width: 767px){
+  .add-post-button{
+    float: left;
+    margin-top: 16px;
+  }
+}
+.headerstyle > div {
+  width: 95vw;
+  margin-left: auto;
+  margin-right: auto;
+}
+.headerstyle{
+  width: 100%;
+  height: 48px;
+  float: left;
+  background-color: rgb(10, 105, 112);
+  background-image: linear-gradient(rgb(10, 105, 112), rgb(8, 96, 102) 10%, rgb(6, 89, 94) 65%);
+  border-bottom: 1px solid rgb(3, 30, 33);
+  border-radius: 0;
+  border-left:0;
+  border-right:0;
+  border-top:0;
+  position: fixed;
+  z-index: 1000;
+}
+.headerstyle >div>div ul li {
+  border-left: 1px solid rgb(7, 73, 76);
+}
+.headerstyle >div>div ul li:hover {
+  background-color: rgb(7, 73, 76);
+  border-right: 1px solid rgb(6, 57, 59);
+  border-left: 1px solid rgb(7, 73, 76);
+}

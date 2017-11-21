@@ -1,0 +1,12 @@
+.customButton {
+  width: 100%;
+}
+.pricebox {
+  position: relative;
+  height: 40px;
+  width: 100%;
+  background-color: rgb(179, 213, 214);
+  font-size: 22px;
+  line-height: 40px;
+  border-bottom: 1px solid rgb(11, 112, 118);
+}
