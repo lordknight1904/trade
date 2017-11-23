@@ -5,6 +5,7 @@ import sanitizeHtml from 'sanitize-html';
 import { ordersAndHold, updateOrderListToAll, ordersIndividualAndHold } from '../routes/socket_routes/chat_socket';
 import * as btc from '../util/btc';
 import * as usdt from '../util/usdt';
+import * as eth from '../util/eth';
 import { startOrderMatching } from '../util/orderMatching';
 
 export function createOrder(req, res) {
@@ -23,6 +24,21 @@ export function createOrder(req, res) {
       if (err) {
         res.json({ order: 'Không thể đặt lệnh' });
       } else {
+        let unit = 0;
+        let api = {};
+        switch (reqOrder.coin) {
+          case 'BTC': {
+            unit = 100000000;
+            api = btc;
+            break;
+          }
+          case 'ETH': {
+            unit = 1000000000000000000;
+            api = eth;
+            break;
+          }
+          default: unit = 100000000;
+        }
         if (user) {
           const newOrder = new Order({
             userId: sanitizeHtml(reqOrder.userId),
@@ -38,15 +54,17 @@ export function createOrder(req, res) {
               return a.coin === sanitizeHtml(reqOrder.coin);
             });
             if (address.length > 0) {
-              btc.getAddress(address[0].address).catch(() => {
+              api.getAddress(address[0].address).catch(() => {
                 res.json({order: 'Không thể đặt lệnh'});
               }).then((data) => {
-                btc.getHold(user._id)
+                api.getHold(user._id)
                 .catch(() => {
                   res.json({order: 'Không thể đặt lệnh'});
                 })
                 .then((hold) => {
-                  if (data.balance >= hold + Number(sanitizeHtml(reqOrder.amount))) {
+                  console.log(data.final_balance + hold);
+                  console.log(reqOrder.amount);
+                  if (data.final_balance >= hold + Number(sanitizeHtml(reqOrder.amount))) {
                     newOrder.save((err) => {
                       if (err) {
                         res.json({order: 'Không thể đặt lệnh'});
@@ -76,19 +94,7 @@ export function createOrder(req, res) {
                     res.json({order: 'Không thể đặt lệnh'});
                   })
                   .then((hold) => {
-                    let unit = 0;
-                    switch (reqOrder.coin) {
-                      case 'BTC': {
-                        unit = 100000000;
-                        break;
-                      }
-                      case 'ETH': {
-                        unit = 1000000000000000000;
-                        break;
-                      }
-                      default: unit = 100000000;
-                    }
-                    if (data.balance / 100000 >= hold + (Number(sanitizeHtml(reqOrder.amount)) / unit * Number(reqOrder.price))) {
+                    if (data.final_balance / 100000 >= hold + (Number(sanitizeHtml(reqOrder.amount)) / unit * Number(reqOrder.price))) {
                       newOrder.save((err) => {
                         if (err) {
                           res.json({order: 'Không thể đặt lệnh'});

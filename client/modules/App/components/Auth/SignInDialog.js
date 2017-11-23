@@ -50,6 +50,7 @@ class SignInDialog extends Component{
       this.props.dispatch(getTransaction(res.user.userName, this.props.coin));
       this.props.dispatch(getBalance(res.user.userName, 'BTC'));
       this.props.dispatch(getBalance(res.user.userName, 'USDT'));
+      this.props.dispatch(getBalance(res.user.userName, 'ETH'));
       // this.props.dispatch(getBalance(res.user.user, 'ETH'));
       this.props.dispatch(login(res.user));
       this.props.dispatch(onCloseSign());

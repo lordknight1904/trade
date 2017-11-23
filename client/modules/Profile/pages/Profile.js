@@ -7,6 +7,8 @@ import { googleAuth, setNotify, cancelGoogle, logout, updateProfile, setIsSubmit
 import { Checkbox, Modal, Table, Button, FormGroup, HelpBlock, FormControl, DropdownButton, MenuItem } from 'react-bootstrap';
 import numeral from 'numeral';
 import styles from '../../../main.css';
+import { getRate } from '../../Exchange/ExchangeReducer'
+import { fetchRate } from '../../Exchange/ExchangeActions'
 
 class Profile extends Component{
   constructor(props){
@@ -38,10 +40,15 @@ class Profile extends Component{
     }
   }
   componentDidMount() {
+    this.props.coinList.map((cl) => {
+      if (cl.name !== 'USDT') {
+        this.props.dispatch(fetchRate(cl.name));
+      }
+    });
     this.setState({
       realName: this.props.realName,
       phone: this.props.phone,
-    })
+    });
   }
   onActivateGoogle = () => {
     this.setState({ isGoogle: true });
@@ -275,7 +282,7 @@ class Profile extends Component{
                       />
                       <FormControl
                         type="text"
-                        defaultValue={`Giá hiện tại 10`}
+                        value={`Giá hiện tại ${this.props.rate[this.state.coin] ? numeral(this.props.rate[this.state.coin].price).format('0,0') : '~'}`}
                         style={{ display: 'table-cell', width: '20%' }}
                         disabled
                       />
@@ -361,6 +368,7 @@ function mapStateToProps(state) {
     phone: getPhone(state),
     coinList: getCoinList(state),
     requireInform: getRequireInform(state),
+    rate: getRate(state),
   };
 }
 Profile.propTypes = {
@@ -374,6 +382,7 @@ Profile.propTypes = {
   googleSecret: PropTypes.object.isRequired,
   coinList: PropTypes.array.isRequired,
   requireInform: PropTypes.array.isRequired,
+  rate: PropTypes.object.isRequired,
 };
 Profile.contextTypes = {
   router: PropTypes.object,

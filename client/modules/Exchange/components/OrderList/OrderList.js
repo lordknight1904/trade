@@ -6,6 +6,7 @@ import { deleteOrder, setNotify } from '../../../App/AppActions';
 import { getSignIn, getSignUp, getUserName, getOpenOrders, getCoinList, getCoin } from '../../../App/AppReducer';
 import { stageInterpreter } from '../../../../util/functions';
 import numeral from 'numeral';
+import style from '../../../App/App.css';
 
 class OrderList extends Component{
   constructor(props){
@@ -30,42 +31,44 @@ class OrderList extends Component{
     const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; });
     const unit = (coin.length > 0) ? coin[0].unit : 0;
     return (
-      <Panel header='Danh sách lệnh chờ của bạn'>
-        <Table striped bordered condensed hover responsive>
-          <thead>
-            <tr>
-              <th>Loại</th>
-              <th>Giá(USDT)</th>
-              <th>Số lượng(coin)</th>
-              <th>Tổng cộng(USDT)</th>
-              <th>Ngày đặt lệnh</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {
-              this.props.openOrders.map((o, index) => {
-                const date = new Date(o.dateCreated);
-                const hours =  date.getHours() < 10 ? `0${date.getHours()}` : date.getHours();
-                const minutes =  date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes();
-                const time = `${date.getDay()}/${date.getMonth()}/${date.getFullYear()} ${hours}:${minutes}`;
-                return (
-                  <tr key={index}>
-                    <th style={{ verticalAlign: 'middle' }}>{stageInterpreter(o.type)}</th>
-                    <th style={{ fontWeight: 'normal', verticalAlign: 'middle' }}>{numeral(o.balance).format('0,0.000000')}</th>
-                    <th style={{ fontWeight: 'normal', verticalAlign: 'middle' }}>{o.amountRemain / unit}</th>
-                    <th style={{ fontWeight: 'normal', verticalAlign: 'middle' }}>{(o.price * o.amountRemain) / unit}</th>
-                    <th style={{ fontWeight: 'normal', verticalAlign: 'middle' }}>{time}</th>
-                    <th style={{ fontWeight: 'normal', verticalAlign: 'middle', textAlign: 'center' }}>
-                      <Button bsStyle="link" onClick={() => this.onDelete(o._id)}>Hủy</Button>
-                    </th>
-                  </tr>
-                )
-              })
-            }
-          </tbody>
-        </Table>
-      </Panel>
+      <div className='col-md-12'>
+        <Panel header='Danh sách lệnh chờ của bạn' className={style.panelStyleTable}>
+          <Table striped bordered condensed hover responsive>
+            <thead>
+              <tr>
+                <th>Loại</th>
+                <th>Giá(USDT)</th>
+                <th>Số lượng(coin)</th>
+                <th>Tổng cộng(USDT)</th>
+                <th>Ngày đặt lệnh</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                this.props.openOrders.map((o, index) => {
+                  const date = new Date(o.dateCreated);
+                  const hours =  date.getHours() < 10 ? `0${date.getHours()}` : date.getHours();
+                  const minutes =  date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes();
+                  const time = `${date.getDay()}/${date.getMonth()}/${date.getFullYear()} ${hours}:${minutes}`;
+                  return (
+                    <tr key={index}>
+                      <th style={{ verticalAlign: 'middle' }}>{stageInterpreter(o.type)}</th>
+                      <th style={{ fontWeight: 'normal', verticalAlign: 'middle' }}>{numeral(o.balance).format('0,0.000000')}</th>
+                      <th style={{ fontWeight: 'normal', verticalAlign: 'middle' }}>{o.amountRemain / unit}</th>
+                      <th style={{ fontWeight: 'normal', verticalAlign: 'middle' }}>{(o.price * o.amountRemain) / unit}</th>
+                      <th style={{ fontWeight: 'normal', verticalAlign: 'middle' }}>{time}</th>
+                      <th style={{ fontWeight: 'normal', verticalAlign: 'middle', textAlign: 'center' }}>
+                        <Button bsStyle="link" onClick={() => this.onDelete(o._id)}>Hủy</Button>
+                      </th>
+                    </tr>
+                  )
+                })
+              }
+            </tbody>
+          </Table>
+        </Panel>
+      </div>
     );
   }
 }

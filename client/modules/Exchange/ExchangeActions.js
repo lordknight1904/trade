@@ -4,6 +4,7 @@ import localStorage from 'localStorage';
 export const ACTIONS = {
   BUY_ORDER_LIST: 'BUY_ORDER_LIST',
   SELL_ORDER_LIST: 'SELL_ORDER_LIST',
+  UPDATE_RATE: 'UPDATE_RATE',
 };
 
 export function createOrder(token, order) {
@@ -36,6 +37,19 @@ export function getSellOrder(coin) {
   return (dispatch) => {
     return callApi(`order/${coin}/sell`).then(res => {
       dispatch(addSellOrders(res.order));
+    });
+  };
+}
+export function updateRate(rate){
+  return {
+    type: ACTIONS.UPDATE_RATE,
+    rate,
+  };
+}
+export function fetchRate(coin) {
+  return (dispatch) => {
+    return callApi(`price/${coin}`).then(res => {
+      dispatch(updateRate(res.rate));
     });
   };
 }

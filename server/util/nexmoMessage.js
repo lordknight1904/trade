@@ -1,4 +1,4 @@
-import Nexmo from 'server/util/nexmoMessage';
+import Nexmo from 'nexmo';
 import User from '../models/user';
 import Transaction from '../models/transaction';
 const nexmo = new Nexmo({
@@ -6,38 +6,44 @@ const nexmo = new Nexmo({
   apiSecret: '105868db6116969c'
 });
 export function sendSMSByNexmo(to, text){
-  if (to.length === '10' || to.length === '11') {
-    nexmo.message.sendSms('Diginex', `+84 ${to.slice(1)}`, text);
-  }
+  console.log(`+84 ${to.slice(1)}`);
+  nexmo.message.sendSms('Diginex', `+84 ${to.slice(1)}`, text);
 }
 export function scanInformRequire(coin){
-  Transaction.find({ coin }, {}, { $sort: { dateCreated: -1 } }).exec((err, transaction) => {
+  Transaction.find({ coin }).sort({ dateCreated: -1 }).exec((err, transaction) => {
     if (err) {
       console.log(err);
     } else {
-      const latestPrice = transaction[0].price;
-      User.find({}).exec((errUser, users) => {
+      if (transaction.length === 0) return;
+
+    const latestPrice = transaction[0].price;
+      User.find({ approved: true }).exec((errUser, users) => {
         if (errUser) {
           console.log(errUser);
         } else {
-          if (users && user.phone !== '' && user.approved) {
-            const arr = [];
+          if (users.length > 0) {
             users.map((u) => {
-              u.requireInform.map((r) => {
-                if (r.coin === coin) {
-                  arr.push(r._id);
-                  if (r.max !== -1 || r.max < latestPrice) {
-                    this.sendSMSByNexmo(user.phone, `Tỉ giá ${coin}/USDT đã vượt qua ${r.max}/USDT`);
+              let arr = [];
+              if (u.requireInform.length > 0) {
+                u.requireInform.map((r) => {
+                  if (r.coin === coin) {
+                    arr.push(r._id);
+                    if (r.max < latestPrice) {
+                      console.log('here max');
+                      sendSMSByNexmo(u.phone, `Ty gia ${coin}/USDT da vuot qua ${r.max}/USDT, gia hien tai ${latestPrice}`);
+                    }
+                    if (r.min > latestPrice) {
+                      console.log('here min');
+                      sendSMSByNexmo(u.phone, `Ty gia ${coin}/USDT da thap hơn ${r.min}/USDT, gia hien tai ${latestPrice}`);
+                    }
                   }
-                  if (r.min !== -1 || r.min > latestPrice) {
-                    this.sendSMSByNexmo(user.phone, `Tỉ giá ${coin}/USDT đã thấp hơn ${r.min}/USDT`);
-                  }
-                }
-              });
-              User.findOneAndUpdate(
-                { _id: u._id },
-                { $pullAll: { requireInform: arr }},
+                });
+                console.log(arr);
+                User.findOneAndUpdate(
+                  { _id: u._id },
+                  { $pullAll: { requireInform: arr }},
                 ).exec(() => {})
+              }
             });
           }
         }

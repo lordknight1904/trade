@@ -51,7 +51,8 @@ class Wallet extends Component{
   onAddress = (event) => { this.setState({ address: event.target.value }); };
   onAmount = (event) => { this.setState({ amount: event.target.value }); };
   render(){
-    const wallet =this.props.wallet;
+    const wallet = this.props.wallet;
+    console.log(wallet);
     return (
       <Table striped bordered condensed hover>
         <thead>

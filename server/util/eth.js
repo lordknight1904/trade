@@ -1,6 +1,6 @@
 import bcypher from 'blockcypher';
 
-const ethapi = new bcypher('beth', 'test', 'fbbd90bc4f6543a2b79275121f751c5a');
+const ethapi = new bcypher('beth', 'test', '54f58bb28ee74b419188f503b0bf250f');
 
 import bigi from 'bigi';
 
@@ -40,6 +40,7 @@ export function addressToAddressWithFee(userFrom, userTo, amount, fee, exchangeF
           data.pubkeys.push(keys.getPublicKeyBuffer().toString('hex'));
           return keys.sign(new buffer.Buffer(tosign, 'hex')).toDER().toString('hex');
         });
+        console.log(data);
         ethapi.sendTX(data, function (err2, ret) {
           if (err2) {
             resolve({ code: 'error', error: err2 });
@@ -71,8 +72,15 @@ export function addAddress() {
     });
   });
 }
+function printResponse(err, data) {
+  if (err !== null) {
+    console.log(err);
+  } else {
+    console.log(data);
+  }
+}
 export function faucet(address) {
-  ethapi.faucet(address, 500000, () => {});
+  ethapi.faucet(address, 1000000000000000000, printResponse);
 }
 export function getAddress(address) {
   return new Promise((resolve, reject) => {
@@ -87,7 +95,7 @@ export function getAddress(address) {
 }
 export function getHold(id) {
   return new Promise((resolve, reject) => {
-    Order.find({ userId: id, coin: 'BTC', type: 'sell', $or: [{ stage: 'open' }] }).exec((err, order) => {
+    Order.find({ userId: id, coin: 'ETH', type: 'sell', $or: [{ stage: 'open' }] }).exec((err, order) => {
       if (err) {
         reject(err);
       } else {
@@ -115,11 +123,14 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
     const addressFrom = (af.length > 0) ? af[0] : [];
     const addressTo = (at.length > 0) ? at[0] : [];
     if (af.length === 0 || at.length === 0) reject('addressError');
+    console.log(addressFrom.address);
+    console.log(addressTo.address);
+    console.log(Number(amount) - feeNetwork);
     const newtx = {
       inputs: [{addresses: [addressFrom.address]}],
       outputs: [
-        {addresses: [addressTo.address], value: Number(amount) - feeNetwork - feeTrade},
-        {addresses: [addressFee], value: Number(feeTrade)}
+        {addresses: [addressTo.address], value: Number(amount) - feeNetwork},
+        // {addresses: [addressFee], value: Number(feeTrade)}
       ],
       gas_limit: Number(feeNetwork)
     };
@@ -135,11 +146,13 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
           data.pubkeys.push(keys.getPublicKeyBuffer().toString('hex'));
           return keys.sign(new buffer.Buffer(tosign, 'hex')).toDER().toString('hex');
         });
+        console.log(data);
         ethapi.sendTX(data, function (err2, ret) {
           if (err2) {
             reject('signError');
           } else {
-            if (ret) {
+            console.log(ret);
+            if (ret && !ret.hasOwnProperty('error')) {
               const webhook2 = {
                 'event': 'tx-confirmation',
                 'address': addressTo.address,
@@ -193,7 +206,9 @@ export function directTransfer(addressFrom, addressPrivate, addressTo, transferA
                 };
                 ethapi.createHook(webhook2, () => {
                 });
-                resolve(ret.tx.hash);
+                console.log(ret);
+                resolve('done');
+                // resolve(ret.tx.hash);
               }
             }
           });

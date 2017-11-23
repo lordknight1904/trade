@@ -20,7 +20,7 @@ const initialState = {
   coinList: [
     { name: 'USDT', unit: 100000, fee: 0 },
     { name: 'BTC', unit: 100000000, fee: 50000 },
-    { name: 'ETH', unit: 1000000000000000000, fee: 0 },
+    { name: 'ETH', unit: 1000000000000000000, fee: 50000 },
   ],
 
   isSubmitting: false,

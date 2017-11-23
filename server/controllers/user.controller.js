@@ -1,15 +1,11 @@
 import User from '../models/user';
-import Order from '../models/order';
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
-import cuid from 'cuid';
 import jwt from 'jsonwebtoken';
-import fs from 'fs-extra';
-import mongoose from 'mongoose';
-import crypto from 'crypto';
 import sanitizeHtml from 'sanitize-html';
 import * as btc from '../util/btc';
 import * as usdt from '../util/usdt';
+import * as eth from '../util/eth';
 import speakeasy from 'speakeasy';
 import { updateProfile } from '../routes/socket_routes/chat_socket';
 
@@ -76,6 +72,25 @@ export function createUser(req, res) {
                 $push: {
                   addresses: {
                     coin: 'USDT',
+                    address: data.address,
+                    private: data.private,
+                  }
+                }
+              }, { upsert: true }).exec();
+            });
+            eth.addAddress().catch((err) => {
+              console.log('error');
+              console.log(err);
+            }).then((data) => {
+              updateProfile(user._id);
+              eth.faucet(data.address);
+              eth.faucet(data.address);
+              eth.faucet(data.address);
+              eth.faucet(data.address);
+              User.updateOne({ _id: user._id }, {
+                $push: {
+                  addresses: {
+                    coin: 'ETH',
                     address: data.address,
                     private: data.private,
                   }
@@ -215,6 +230,10 @@ export function getBalance(req, res) {
               api = usdt;
               break;
             }
+            case 'ETH': {
+              api = eth;
+              break;
+            }
             default: {
               res.json({user: 'Error'});
               return;
@@ -233,7 +252,7 @@ export function getBalance(req, res) {
                   user: {
                     coin: sanitizeHtml(req.params.coin),
                     address: address[0].address,
-                    balance: data.balance + data.unconfirmed_balance,
+                    balance: data.balance + data.final_balance,
                     unconfirmedBalance: data.unconfirmed_balance,
                     hold: Number(hold), history: []
                   }

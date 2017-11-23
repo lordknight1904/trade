@@ -4,10 +4,12 @@ import Setting from '../models/setting';
 import Transaction from '../models/transaction';
 import * as btc from '../util/btc';
 import * as usdt from '../util/usdt';
+import * as eth from '../util/eth';
 import mongoose from 'mongoose';
 import { ordersAndHold, updateOrderListToAll, ordersIndividualAndHold } from '../routes/socket_routes/chat_socket';
-let running = false;
+import { scanInformRequire } from './nexmoMessage';
 
+let running = false;
 export function startOrderMatching(coin, userId) {
   ordersAndHold({ coin: coin, idFrom: userId, idTo: '' });
   if (!running) {
@@ -49,6 +51,18 @@ function makeTransactionOrderToOrder(s, b) {
       const feeCoin = feeBTC;
       const addressCoin = addressBTC;
 
+      let api = {};
+      switch (s.coin) {
+        case 'BTC': {
+          api = btc;
+          break;
+        }
+        case 'ETH': {
+          api = eth;
+          break;
+        }
+        default: api = {}; return;
+      }
       Order.updateMany(
         {
           _id: {
@@ -73,7 +87,7 @@ function makeTransactionOrderToOrder(s, b) {
                       if (userTo) {
                         // phi cho network la 0.0005 / 50000
                         const amount = (s.amountRemain <= b.amountRemain) ? s.amountRemain : b.amountRemain;
-                        btc.transactionWithFee(userFrom, userTo, s, b, addressCoin, feeCoin, feeNetwork).catch(() => {
+                        api.transactionWithFee(userFrom, userTo, s, b, addressCoin, feeCoin, feeNetwork).catch(() => {
                           ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
                         }).then((txCoin) => {
                           usdt.transactionWithFee(userTo, userFrom, s, b, addressUSDT, feeUSDT, feeNetwork).catch(() => {
@@ -139,6 +153,7 @@ function makeTransactionOrderToOrder(s, b) {
                                               { upsert: true, new: true, setDefaultsOnInsert: true }
                                             ).exec(() => {});
                                             transaction.save(() => {
+                                              scanInformRequire(s.coin);
                                               ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
                                             });
                                           }
@@ -217,4 +232,9 @@ export function orderMatching(coin) {
       });
     }
   });
+}
+
+
+export function checkInform(coin) {
+
 }

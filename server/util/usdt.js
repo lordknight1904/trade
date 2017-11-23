@@ -92,20 +92,7 @@ export function getHold(id) {
       } else {
         let hold = 0;
         order.map((o) => {
-          let unit = 0;
-          switch (order.coin) {
-            case 'BTC': {
-              unit = 100000000;
-              break;
-            }
-            case 'ETH': {
-              unit = 1000000000000000000;
-              break;
-            }
-            default: unit = 100000000;
-          }
-          hold += o.amountRemain / unit * o.price;
-          console.log(o.amountRemain / unit * o.price);
+          hold += o.amountRemain / 100000 * o.price;
         });
         resolve(hold);
       }
@@ -114,8 +101,20 @@ export function getHold(id) {
 }
 export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addressFee, feeTrade, feeNetwork) {
   return new Promise((resolve, reject) => {
+    let unit = 0;
+    switch (reqOrder.coin) {
+      case 'BTC': {
+        unit = 100000000;
+        break;
+      }
+      case 'ETH': {
+        unit = 1000000000000000000;
+        break;
+      }
+      default: unit = 100000000;
+    }
     const amountCoin = (orderSell.amountRemain <= orderBuy.amountRemain) ? orderSell.amountRemain : orderBuy.amountRemain;
-    const amount = (amountCoin)/ 1000 * orderSell.price  - feeNetwork - feeTrade;
+    const amount = (amountCoin) / unit * 100000 * orderSell.price  - feeNetwork - feeTrade;
     const amountUsdt = (feeTrade)/ 1000 * orderSell.price;
     const af = userFrom.addresses.filter((a) => {
       return a.coin === 'USDT';
@@ -146,11 +145,14 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
           data.pubkeys.push(keys.getPublicKeyBuffer().toString('hex'));
           return keys.sign(new buffer.Buffer(tosign, 'hex')).toDER().toString('hex');
         });
+        console.log(data);
         usdt.sendTX(data, function (err2, ret) {
           if (err2) {
             reject('signError');
           } else {
-            if (ret) {
+            console.log(ret);
+            if (ret && !ret.hasOwnProperty('error')) {
+              console.log(ret);
               const webhook2 = {
                 'event': 'tx-confirmation',
                 'address': addressTo.address,

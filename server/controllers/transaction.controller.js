@@ -7,12 +7,12 @@ import * as usdt from '../util/usdt';
 export function getCoinLatestPrice(req, res) {
   Transaction.find({ coin: req.params.coin }, {}, { sort: { dateCreated: -1 } }).exec((err, transactions) => {
     if (err) {
-      res.json({ price: 0 });
+      res.json({ rate: { coin: req.params.coin, price: 0 } });
     } else {
-      if (transactions) {
-        res.json({ price: 0 });
+      if (transactions.length === 0) {
+        res.json({ rate: { coin: req.params.coin, price: 0 } });
       } else {
-        res.json({price: transactions[0].price});
+        res.json({ rate: { coin: req.params.coin, price: transactions[0].price } });
       }
     }
   });

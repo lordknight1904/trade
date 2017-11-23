@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 
 import { setSocket, getHold, getMyOrders, getBalance, getTransaction } from '../AppActions';
 import { getId, getUserName, getSocket, getCoin } from '../AppReducer';
-import { getSellOrder, getBuyOrder } from '../../Exchange/ExchangeActions';
+import { getSellOrder, getBuyOrder, fetchRate } from '../../Exchange/ExchangeActions';
 import ChatSocket from '../../../util/ChatSocket';
 
 export class SocketController extends Component {
@@ -19,13 +19,16 @@ export class SocketController extends Component {
             if (this.props.coin === message.coin) {
               this.props.dispatch(getSellOrder(this.props.coin));
               this.props.dispatch(getBuyOrder(this.props.coin));
+              this.props.dispatch(fetchRate(this.props.coin));
             }
             break;
           }
           case 'ordersAndHold': {
             this.props.dispatch(getBalance(this.props.userName, 'BTC'));
+            this.props.dispatch(getBalance(this.props.userName, 'ETH'));
             this.props.dispatch(getBalance(this.props.userName, 'USDT'));
             this.props.dispatch(getHold(this.props.userName, message.coin));
+            this.props.dispatch(fetchRate(message.coin));
             if (this.props.coin === message.coin) {
               this.props.dispatch(getSellOrder(this.props.coin));
               this.props.dispatch(getBuyOrder(this.props.coin));
@@ -36,6 +39,7 @@ export class SocketController extends Component {
           }
           case 'ordersIndividualAndHold': {
             if (this.props.coin === message.coin) {
+              this.props.dispatch(fetchRate(this.props.coin));
               this.props.dispatch(getSellOrder(this.props.coin));
               this.props.dispatch(getBuyOrder(this.props.coin));
               this.props.dispatch(getHold(this.props.userName, message.coin));
