@@ -112,8 +112,8 @@ class SignUpDialog extends Component{
   render(){
     return (
       <Modal show={this.props.isSignUp}>
-        <Modal.Header>
-          <Modal.Title>Đăng ký</Modal.Title>
+        <Modal.Header style={{ backgroundColor: 'rgb(10, 105, 112)' }}>
+          <Modal.Title style={{ textAlign: 'center', color: 'white', fontWeight: 'bold' }}>Đăng ký</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form horizontal>
@@ -140,11 +140,11 @@ class SignUpDialog extends Component{
             </FormGroup>
           </Form>
         </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={this.onSigningUp} disabled={this.state.isSigningUp}>
+        <Modal.Footer style={{ backgroundColor: 'rgb(10, 105, 112)', textAlign: 'center' }}>
+          <Button onClick={this.onSigningUp} bsStyle="success" disabled={this.state.isSigningUp}>
             {(this.state.isSigningUp) ? 'Đang gửi yêu cầu' : 'Đăng ký'}
           </Button>
-          <Button onClick={this.onHide} disabled={this.state.isSigningUp}>
+          <Button onClick={this.onHide} bsStyle="danger" disabled={this.state.isSigningUp}>
             {(this.state.isSigningUp) ? 'Đang gửi yêu cầu' : 'Thoát'}
           </Button>
         </Modal.Footer>

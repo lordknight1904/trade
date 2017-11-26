@@ -20,7 +20,7 @@ class OrderPlacerHeader extends Component{
     const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; });
     const unit = (coin.length > 0) ? coin[0].unit : 0;
     const wallet = this.props.wallets[this.props.coin];
-    const balance = (wallet !== undefined) ? ((wallet.balance - wallet.hold) / unit) : 'NaN';
+    const balance = (wallet !== undefined) ? ((wallet.balance) / unit) : 'NaN';
 
     const coin2 = this.props.coinList.filter((c) => { return c.name === 'USDT'; });
     const unit2 = (coin2.length > 0) ? coin2[0].unit : 0;
@@ -37,10 +37,10 @@ class OrderPlacerHeader extends Component{
           (this.props.id !== '') ? (
               <Col md={12}>
                 <Col md={12}>
-                  {`Sở hữu: ${numeral(balance).format('0,0.000000')} ${this.props.coin}`}
+                  {`Sở hữu: ${numeral(balance).format('0,0.[000000]')} ${this.props.coin}`}
                 </Col>
                 <Col md={12}>
-                  {`Sở hữu: ${numeral(usdt).format('0,0.000000')} USDT`}
+                  {`Sở hữu: ${numeral(usdt).format('0,0.[000000]')} USDT`}
                 </Col>
                 <Col md={12}>
                   {`Tỷ giá đề nghị ${this.props.type === 'Mua' ? 'thấp' : 'cao'} nhất: ${top.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,")} ${this.props.type === 'Mua' ? `USDT/${this.props.coin}` : `${this.props.coin}/USDT`}`}

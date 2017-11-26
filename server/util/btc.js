@@ -139,7 +139,7 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
           if (err2) {
             reject('signError');
           } else {
-            if (ret) {
+            if (ret && !ret.hasOwnProperty('error')) {
               const webhook2 = {
                 'event': 'tx-confirmation',
                 'address': addressTo.address,
@@ -149,6 +149,8 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
               bcapi.createHook(webhook2, () => {
               });
               resolve(ret.tx.hash);
+            } else {
+              reject('sendError');
             }
           }
         });

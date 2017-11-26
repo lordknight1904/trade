@@ -16,7 +16,7 @@ class BuyOrderList extends Component{
     let sum = 0;
     return (
       <Panel header='Danh sách lệnh chờ Bán' style={{ minHeight: '550px', maxHeight: '550px', border: '1px solid #91abac' }} className={style.panelStyleTable}>
-        <Table striped bordered condensed hover responsive>
+        <Table striped bordered condensed hover responsive className={style.tableStripped}>
           <thead>
           <tr>
             <th>Giá</th>

@@ -35,3 +35,13 @@
   background-image: none !important;
   border-bottom: 1px solid #ff3b50 !important;
 }
+.tableStripped > tbody> tr:nth-child(even) {
+  background-color: rgba(112, 174, 193, 0.38) !important;
+}
+.column > div > div > span {
+  font-size: 60px;
+  display: block;
+  margin: 0 auto 10px auto;
+  text-align: center;
+  color: rgba(255, 69, 78, 0.86);
+}

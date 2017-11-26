@@ -6,9 +6,9 @@ import { getId, getGoogleAuthentication, getGoogleSecret, getIsSubmitting, getAp
 import { googleAuth, setNotify, cancelGoogle, logout, updateProfile, setIsSubmitting, addInform, refetchUserProfile, deleteInform } from '../../App/AppActions';
 import { Checkbox, Modal, Table, Button, FormGroup, HelpBlock, FormControl, DropdownButton, MenuItem } from 'react-bootstrap';
 import numeral from 'numeral';
-import styles from '../../../main.css';
 import { getRate } from '../../Exchange/ExchangeReducer'
 import { fetchRate } from '../../Exchange/ExchangeActions'
+import appStyles from '../../App/App.css';
 
 class Profile extends Component{
   constructor(props){
@@ -102,6 +102,10 @@ class Profile extends Component{
     this.setState({ isCancelGoogle: false });
   };
   onSubmitGoogle = () => {
+    if (this.state.token === '') {
+      this.props.dispatch(setNotify('Vui lòng nhập mã QR'));
+      return;
+    }
     const user = {
       id: this.props.id,
       token: this.state.token,
@@ -140,6 +144,14 @@ class Profile extends Component{
   };
 
   addInform = () => {
+    if (this.state.phone === '') {
+      this.props.dispatch(setNotify('Vui lòng gửi thông tin bảo mật trước.'));
+      return
+    }
+    if (!this.props.approved) {
+      this.props.dispatch(setNotify('Vui lòng chờ thông tin bảo mật được duyệt.'));
+      return
+    }
     this.setState({ inform: !this.state.inform });
   };
   onCoinSelect = (eventKey) => {
@@ -195,7 +207,7 @@ class Profile extends Component{
   };
   render(){
     return (
-      <div>
+      <div className={appStyles.container} style={{ marginTop: '-50px' }}>
         <Table striped bordered condensed hover>
           <tbody>
             <tr>
@@ -240,24 +252,26 @@ class Profile extends Component{
             </tr>
             <tr>
               <td colSpan="2">
-                <Button disabled={this.props.approved || this.props.isSubmitting} onClick={this.onSubmitProfile}>Gửi</Button>
+                <Button bsStyle="primary" bsSize="small" disabled={this.props.approved || this.props.isSubmitting} onClick={this.onSubmitProfile}>Gửi</Button>
               </td>
             </tr>
             <tr>
               <td>Bảo mật 2 cấp</td>
+              <td>
               {
                 this.props.googleAuthentication ? (
-                    <Button bsStyle="danger" onClick={this.onCancelGoogle}>Hủy bảo mật 2 cấp</Button>
+                    <Button bsStyle="danger" bsSize="xsmall"  onClick={this.onCancelGoogle}>Hủy bảo mật 2 cấp</Button>
                   ) : (
-                    <Button bsStyle="warning" onClick={this.onActivateGoogle}>Kích hoạt bảo mật 2 cấp ngay</Button>
+                    <Button bsStyle="warning" bsSize="xsmall"  onClick={this.onActivateGoogle}>Kích hoạt bảo mật 2 cấp ngay</Button>
                   )
               }
+              </td>
             </tr>
 
             <tr>
               <td>Thông báo giá</td>
               <td>
-                <Button bsStyle="success" onClick={this.addInform}>{this.state.inform ? '-' : '+'}</Button>
+                <Button bsStyle="success" bsSize="xsmall"  onClick={this.addInform}>{this.state.inform ? '-' : '+'}</Button>
               </td>
             </tr>
             {
@@ -333,8 +347,8 @@ class Profile extends Component{
             </FormGroup>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={this.onHide}>Đóng</Button>
-            <Button onClick={this.onSubmitGoogle}>Gửi</Button>
+            <Button bsStyle="danger" bsSize="small" onClick={this.onHide}>Đóng</Button>
+            <Button bsStyle="primary" bsSize="small" onClick={this.onSubmitGoogle}>Gửi</Button>
           </Modal.Footer>
         </Modal>
 
@@ -348,8 +362,8 @@ class Profile extends Component{
             </FormGroup>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={this.onHideCancelGoogle}>Đóng</Button>
-            <Button onClick={this.onCancelGoogleAuth}>Gửi</Button>
+            <Button bsStyle="danger" bsSize="small" onClick={this.onHideCancelGoogle}>Đóng</Button>
+            <Button bsStyle="primary" bsSize="small" onClick={this.onCancelGoogleAuth}>Gửi</Button>
           </Modal.Footer>
         </Modal>
       </div>

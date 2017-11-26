@@ -47,17 +47,17 @@ class TransactionDetail extends Component{
 
               <tr>
                 <td style={{ fontWeight: 'bold' }}>Số lượng</td>
-                <td>{`${numeral(amount).format('0,0.000000')} ${(bool) ? txCoin : 'USDT'}`} </td>
+                <td>{`${numeral(amount).format('0,0.[000000]')} ${(bool) ? txCoin : 'USDT'}`} </td>
               </tr>
 
               <tr>
                 <td style={{ fontWeight: 'bold' }}>Phí</td>
-                <td>{`${numeral(fee).format('0,0.000000')} ${(bool) ? txCoin : 'USDT'}`}</td>
+                <td>{`${numeral(fee).format('0,0.[000000]')} ${(bool) ? txCoin : 'USDT'}`}</td>
               </tr>
 
               <tr>
                 <td style={{ fontWeight: 'bold' }}>Số lượng nhận được</td>
-                <td>{`${numeral(receive).format('0,0.000000')} ${(bool) ? txCoin : 'USDT'}`}</td>
+                <td>{`${numeral(receive).format('0,0.[000000]')} ${(bool) ? txCoin : 'USDT'}`}</td>
               </tr>
               <tr>
                 <td style={{ fontWeight: 'bold' }}>Coin transaction hash</td>
@@ -84,7 +84,6 @@ class TransactionDetail extends Component{
 
 function mapStateToProps(state) {
   return {
-    id: getId(state),
     detail: getDetail(state),
     transactionDetail: getTransactionDetail(state),
     userName: getUserName(state),

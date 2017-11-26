@@ -5,3 +5,6 @@
 .pHover {
   color: blue;
 }
+.tableStripped > tbody> tr:nth-child(even) {
+  background-color: rgba(9, 186, 193, 0.38) !important;
+}

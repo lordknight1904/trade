@@ -1,6 +1,6 @@
 import bcypher from 'blockcypher';
 
-const ethapi = new bcypher('beth', 'test', '54f58bb28ee74b419188f503b0bf250f');
+const ethapi = new bcypher('beth', 'test', '7d52d8baf3554ecfa0884b9669459e1e');
 
 import bigi from 'bigi';
 
@@ -162,6 +162,8 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
               ethapi.createHook(webhook2, () => {
               });
               resolve(ret.tx.hash);
+            } else {
+              reject('sendError');
             }
           }
         });

@@ -102,7 +102,7 @@ export function getHold(id) {
 export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addressFee, feeTrade, feeNetwork) {
   return new Promise((resolve, reject) => {
     let unit = 0;
-    switch (reqOrder.coin) {
+    switch (orderSell.coin) {
       case 'BTC': {
         unit = 100000000;
         break;
@@ -150,9 +150,9 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
           if (err2) {
             reject('signError');
           } else {
-            console.log(ret);
+            // console.log(ret);
             if (ret && !ret.hasOwnProperty('error')) {
-              console.log(ret);
+              // console.log(ret);
               const webhook2 = {
                 'event': 'tx-confirmation',
                 'address': addressTo.address,
@@ -162,6 +162,8 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
               usdt.createHook(webhook2, () => {
               });
               resolve(ret.tx.hash);
+            } else {
+              reject('sendError');
             }
           }
         });

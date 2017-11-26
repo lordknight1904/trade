@@ -20,7 +20,7 @@ export function startOrderMatching(coin, userId) {
 function makeTransactionOrderToOrder(s, b) {
   Setting.find((errSetting, setting) => {
     if (errSetting) {
-
+      return;
     } else {
       const feeNetworkArr = setting.filter(s => {return s.name === 'feeNetwork';});
       if (feeNetworkArr.length === 0) return;
@@ -48,17 +48,21 @@ function makeTransactionOrderToOrder(s, b) {
       const addressETH = addressETHArr[0].value;
       const addressUSDT = addressUSDTArr[0].value;
 
-      const feeCoin = feeBTC;
-      const addressCoin = addressBTC;
+      let feeCoin = 0;
+      let addressCoin = '';
 
       let api = {};
       switch (s.coin) {
         case 'BTC': {
           api = btc;
+          feeCoin = feeBTC;
+          addressCoin = addressBTC;
           break;
         }
         case 'ETH': {
           api = eth;
+          feeCoin = feeETH;
+          addressCoin = addressETH;
           break;
         }
         default: api = {}; return;
@@ -87,10 +91,10 @@ function makeTransactionOrderToOrder(s, b) {
                       if (userTo) {
                         // phi cho network la 0.0005 / 50000
                         const amount = (s.amountRemain <= b.amountRemain) ? s.amountRemain : b.amountRemain;
-                        api.transactionWithFee(userFrom, userTo, s, b, addressCoin, feeCoin, feeNetwork).catch(() => {
+                        api.transactionWithFee(userFrom, userTo, s, b, addressCoin, feeCoin, feeNetwork).catch((err) => {
                           ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
                         }).then((txCoin) => {
-                          usdt.transactionWithFee(userTo, userFrom, s, b, addressUSDT, feeUSDT, feeNetwork).catch(() => {
+                          usdt.transactionWithFee(userTo, userFrom, s, b, addressUSDT, feeUSDT, feeNetwork).catch((err) => {
                             ordersAndHold({ coin: b.coin, idFrom: userFrom._id, idTo: userTo._id  });
                           }).then((txUsdt) => {
                             Order.updateMany({ _id: { $in: [ s._id, b._id ] } }, { $inc: { amountRemain:  (0 - amount)} }).exec((err3) => {

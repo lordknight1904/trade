@@ -14,7 +14,6 @@ export function updateOrderListToAll(message) {
   }
 }
 export function ordersAndHold(message) {
-  console.log(message);
   for (const socket in connections) {
     if (connections[socket].userID.toString() === message.idFrom.toString() ||
         connections[socket].userID.toString() === message.idTo.toString()

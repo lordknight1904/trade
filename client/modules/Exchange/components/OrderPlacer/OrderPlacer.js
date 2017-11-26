@@ -7,6 +7,7 @@ import { getId, getToken, getCoin, getCoinList } from '../../../App/AppReducer';
 import OrderPlacerHeader from './OrderPlacerHeader';
 import { createOrder } from '../../ExchangeActions';
 import style from '../../../App/App.css';
+import numeral from 'numeral';
 class OrderPlacer extends Component{
   constructor(props){
     super(props);
@@ -36,47 +37,54 @@ class OrderPlacer extends Component{
     return !isNaN(+n) && isFinite(n);
   };
   onChangePrice = (event) => {
-    let number = Number(parseFloat(event.target.value.trim()));
-    if (number < 0) return;
-    const checkLength = number.toString().indexOf('.');
-    if (checkLength > -1) {
-      if (number.toString().substr(checkLength+1, checkLength + 6).length == 6) {
-        number = number.toFixed(6);
+    const count = (event.target.value.match(/\./g) || []).length;
+    const number = numeral(event.target.value).format('0,0.[000000]');
+    switch (count) {
+      case 0: {
+        this.setState({ price: number, total: ( numeral(event.target.value).value()) * numeral(this.state.amount).value(), base: 'price' });
+        break;
       }
-      if (number.toString().substr(checkLength+1, checkLength + 6).length > 6) {
-        return;
+      case 1: {
+        this.setState({ price: event.target.value, total: numeral(event.target.value).add(0.0).format('0,0.[000000]') * numeral(this.state.amount).value(), base: 'price' });
+        break;
+      }
+      default: {
+        this.setState({ price: number, total: ( numeral(event.target.value).value()) * numeral(this.state.amount).value(), base: 'price' });
+        break;
       }
     }
-    this.setState({ price: number, total: (number) * this.state.amount, base: 'price' });
   };
   onChangeAmount = (event) => {
-    let number = Number(parseFloat(event.target.value.trim()));
-    if (number < 0) return;
-    const checkLength = number.toString().indexOf('.');
-    if (checkLength > -1) {
-      if (number.toString().substr(checkLength+1, checkLength + 6).length == 6) {
-        number = number.toFixed(6);
+    const count = (event.target.value.match(/\./g) || []).length;
+    const number = numeral(event.target.value).format('0,0.[000000]');
+    switch (count) {
+      case 0: {
+        this.setState({ amount: number, total: (number) * numeral(this.state.price).value(), base: 'price' });
+        break;
       }
-      if (number.toString().substr(checkLength+1, checkLength + 6).length > 6) {
-        return;
+      case 1: {
+        this.setState({ amount: event.target.value, total: numeral(event.target.value).add(0.0).format('0,0.[000000]') * numeral(this.state.price).value(), base: 'price' });
+        break;
+      }
+      default: {
+        this.setState({ amount: number, total: (number) * numeral(this.state.price).value(), base: 'price' });
+        break;
       }
     }
-    this.setState({ amount: number, total: number * this.state.price, base: 'amount' });
   };
   onChangeTotal = (event) => {
-    if (this.isNumber(event.target.value.trim())) {
-      if (event.target.value.trim() < 0) return;
-      switch (this.state.base) {
-        case 'price': {
-          this.setState({ total: event.target.value.trim(), amount: Number(event.target.value.trim()) / this.state.price });
-          break;
-        }
-        case 'amount': {
-          this.setState({ total: event.target.value.trim(), price: Number(event.target.value.trim()) / this.state.amount });
-          break;
-        }
-        default: break;
+    const count = (event.target.value.match(/\./g) || []).length;
+    const number = numeral(event.target.value).format('0,0.[000000]');
+    switch (this.state.base) {
+      case 'price': {
+        this.setState({ total: (count === 1) ? event.target.value.trim() : number, amount: numeral(number / numeral(this.state.price).value()).format('0,0.[000000]') });
+        break;
       }
+      case 'amount': {
+        this.setState({ total: (count === 1) ? event.target.value.trim() : number, price: numeral(number / numeral(this.state.amount).value()).format('0,0.[000000]') });
+        break;
+      }
+      default: break;
     }
   };
   onOrder = () => {
@@ -106,6 +114,10 @@ class OrderPlacer extends Component{
   };
   render() {
     const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; })[0];
+    const usdt = this.props.coinList.filter((c) => { return c.name === 'USDT'; })[0];
+
+    const coinFee = numeral(coin.fee / coin.unit).format('0,0.[000000]');
+    const usdtFee = numeral(usdt.fee / usdt.unit).format('0,0.[000000]');
     return (
       <Panel header={<OrderPlacerHeader type={this.props.type} />} style={{ border: '1px solid #91abac' }} className={style.panelStyle}>
         <Form horizontal>
@@ -113,8 +125,8 @@ class OrderPlacer extends Component{
             <Col sm={3} className="control-label">Giá</Col>
             <Col sm={9}>
               <InputGroup>
-                <FormControl type="number" onChange={this.onChangePrice} value={this.state.price} />
-                <InputGroup.Addon style={{ width: '100px' }}>USDT</InputGroup.Addon>
+                <FormControl type="text" onChange={this.onChangePrice} value={this.state.price} />
+                <InputGroup.Addon style={{ width: '100px', backgroundColor: '#b3d5d6' }}>USDT</InputGroup.Addon>
               </InputGroup>
             </Col>
           </FormGroup>
@@ -123,30 +135,29 @@ class OrderPlacer extends Component{
             <Col sm={3} className="control-label">Số lượng</Col>
             <Col sm={9}>
               <InputGroup>
-                <FormControl type="number" onChange={this.onChangeAmount} value={this.state.amount} />
-                <InputGroup.Addon style={{ width: '100px' }}>{coin.name}</InputGroup.Addon>
+                <FormControl type="text" onChange={this.onChangeAmount} value={this.state.amount} />
+                <InputGroup.Addon style={{ width: '100px', backgroundColor: '#b3d5d6' }}>{coin.name}</InputGroup.Addon>
               </InputGroup>
             </Col>
           </FormGroup>
-          {/*<span style={{ margin: 'auto', display: 'block', width: '75%', borderTop: '1px solid #ccc', marginBottom: '20px' }} />*/}
+
           <FormGroup style={{ marginBottom: '35px' }}>
             <Col sm={3} className="control-label">Tổng cộng</Col>
             <Col sm={9}>
               <InputGroup>
-                <FormControl type="text" onChange={this.onChangeTotal} value={Number(this.state.total).toFixed(6)} />
-                <InputGroup.Addon style={{ width: '100px' }}>USDT</InputGroup.Addon>
+                <FormControl type="text" onChange={this.onChangeTotal} value={numeral(Number(this.state.total)).format('0,0.[000000]')} />
+                <InputGroup.Addon style={{ width: '100px', backgroundColor: '#b3d5d6' }}>USDT</InputGroup.Addon>
               </InputGroup>
             </Col>
           </FormGroup>
 
-
-          <p>Phí giao dịch chiếm 0.2% tổng giá trị lệnh</p>
+          <p>{`Phí giao dịch chiếm ${coinFee} ${this.props.coin} và ${usdtFee} USDT`}</p>
 
           {
             (this.props.id) ? (
                 <FormGroup>
                   <Col mdOffset={9} md={2}>
-                    <Button onClick={this.onOrder} disabled={this.state.isSending}>{this.props.type}</Button>
+                    <Button onClick={this.onOrder} bsStyle="warning" disabled={this.state.isSending}>{this.props.type}</Button>
                   </Col>
                 </FormGroup>
               ) : (

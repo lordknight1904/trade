@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { confirmUser } from '../UserActions';
+import appStyles from '../../App/App.css';
 
 
 class Confirm extends Component{
@@ -21,7 +22,7 @@ class Confirm extends Component{
   }
   render(){
     return (
-      <div>
+      <div className={appStyles.container} style={{ marginTop: '-50px' }}>
         {this.state.message}
       </div>
     );

@@ -1,17 +1,24 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Panel, Table } from 'react-bootstrap';
-import { setTransactionDetail, getConfirmation, setConfirmation } from '../../../App/AppActions';
-import { getCoinList, getCoin, getUserName, getTransaction, getTransactionDetail } from '../../../App/AppReducer';
+import { Panel, Table, Pagination, DropdownButton, MenuItem } from 'react-bootstrap';
+import { setTransactionDetail, getConfirmation, setConfirmation, setHistoryMaxPage, setHistoryPage,
+  addTransaction, changeCoin, fetchTransaction } from '../../App/AppActions';
+import { getCoinList, getCoin, getUserName, getTransaction, getTransactionDetail, getHistoryMaxPage, getHistoryPage, getId } from '../../App/AppReducer';
+import { getBuyOrder, getSellOrder } from "../../Exchange/ExchangeActions";
 import numeral from 'numeral';
-import style from '../../../App/App.css';
+import style from '../../App/App.css';
 
 class History extends Component{
   constructor(props){
     super(props);
     this.state = {
     };
+  }
+  componentWillMount() {
+    if (this.props.id === '') {
+      this.context.router.push('/');
+    }
   }
   detail = (transaction) => {
     this.props.dispatch(setTransactionDetail(transaction));
@@ -23,6 +30,17 @@ class History extends Component{
       this.props.dispatch(getConfirmation(coin, txHash));
     }
   };
+  changeCoin = (eventKey) => {
+    this.props.dispatch(changeCoin(eventKey));
+    this.props.dispatch(getSellOrder(eventKey));
+    this.props.dispatch(getBuyOrder(eventKey));
+    this.props.dispatch(addTransaction([]));
+    this.props.dispatch(fetchTransaction(this.props.userName, eventKey, 0));
+  };
+  onPage = (eventKey) => {
+    this.props.dispatch(setHistoryPage(eventKey));
+    this.props.dispatch(fetchTransaction(this.props.userName, this.props.coin, eventKey - 1));
+  };
   render(){
     const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; });
     const unit = (coin.length > 0) ? coin[0].unit : 0;
@@ -30,18 +48,46 @@ class History extends Component{
     const usdt = this.props.coinList.filter((c) => { return c.name === 'USDT'; });
     const unit2 = (usdt.length > 0) ? usdt[0].unit : 0;
     return (
-      <div className="col-md-12">
+      <div className={style.container} style={{ marginTop: '-50px' }} >
+        <div style={{ display: 'flex', marginBottom: '10px' }}>
+          <DropdownButton id="coinDropDownHistory" bsStyle="info" title={this.props.coin} onSelect={this.changeCoin} >
+            {
+              this.props.coinList.map((cl, index) => {
+                if (cl.name !== 'USDT') {
+                  return (
+                    <MenuItem key={index} eventKey={cl.name}>{cl.name}</MenuItem>
+                  )
+                }
+              })
+            }
+          </DropdownButton>
+          <Pagination
+            bsSize="small"
+            first
+            last
+            ellipsis
+            boundaryLinks
+            items={this.props.historyMaxPage}
+            maxButtons={5}
+            activePage={this.props.historyPage}
+            onSelect={this.onPage}
+            style={{
+              display: 'table',
+              margin: 'auto auto auto 20px'
+            }}
+          />
+        </div>
         <Panel header="Các giao dịch đã thực hiện" className={style.panelStyleTable}>
           <Table striped bordered condensed hover responsive className={style.tableStripped}>
             <thead>
-              <tr>
-                <th>Ngày</th>
-                <th>Loại</th>
-                <th>Giá</th>
-                <th>Số lượng</th>
-                <th>Phí</th>
-                <th>Tổng cộng(USDT)</th>
-              </tr>
+            <tr>
+              <th>Ngày</th>
+              <th>Loại</th>
+              <th>Giá</th>
+              <th>Số lượng</th>
+              <th>Phí</th>
+              <th>Tổng cộng(USDT)</th>
+            </tr>
             </thead>
             <tbody>
             {
@@ -62,7 +108,7 @@ class History extends Component{
                           `${numeral(trans.feeCoin / unit).format('0,0.[000000]')} ${trans.coin}`
                           : `${numeral(trans.feeUsdt / unit2).format('0,0.[000000]')} USDT`
                       }
-                      </th>
+                    </th>
                     <th>{trans.amount / unit * trans.price }</th>
                   </tr>
                 );
@@ -83,6 +129,9 @@ function mapStateToProps(state) {
     transactionDetail: getTransactionDetail(state),
     coin: getCoin(state),
     coinList: getCoinList(state),
+    id: getId(state),
+    historyMaxPage: getHistoryMaxPage(state),
+    historyPage: getHistoryPage(state),
   };
 }
 History.propTypes = {
@@ -91,7 +140,10 @@ History.propTypes = {
   coin: PropTypes.string.isRequired,
   transaction: PropTypes.array.isRequired,
   userName: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
   transactionDetail: PropTypes.object.isRequired,
+  historyMaxPage: PropTypes.number.isRequired,
+  historyPage: PropTypes.number.isRequired,
 };
 History.contextTypes = {
   router: PropTypes.object,

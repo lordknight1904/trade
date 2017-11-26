@@ -33,7 +33,7 @@ class OrderList extends Component{
     return (
       <div className='col-md-12'>
         <Panel header='Danh sách lệnh chờ của bạn' className={style.panelStyleTable}>
-          <Table striped bordered condensed hover responsive>
+          <Table striped bordered condensed hover responsive className={style.tableStripped}>
             <thead>
               <tr>
                 <th>Loại</th>

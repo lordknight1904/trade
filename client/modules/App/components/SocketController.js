@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
-import { setSocket, getHold, getMyOrders, getBalance, getTransaction } from '../AppActions';
+import { setSocket, getHold, getMyOrders, getBalance, fetchTransaction } from '../AppActions';
 import { getId, getUserName, getSocket, getCoin } from '../AppReducer';
 import { getSellOrder, getBuyOrder, fetchRate } from '../../Exchange/ExchangeActions';
 import ChatSocket from '../../../util/ChatSocket';
@@ -33,7 +33,7 @@ export class SocketController extends Component {
               this.props.dispatch(getSellOrder(this.props.coin));
               this.props.dispatch(getBuyOrder(this.props.coin));
               this.props.dispatch(getMyOrders(this.props.userName, message.coin));
-              this.props.dispatch(getTransaction(this.props.userName, message.coin));
+              this.props.dispatch(fetchTransaction(this.props.userName, message.coin, 0));
             }
             break;
           }
@@ -44,7 +44,7 @@ export class SocketController extends Component {
               this.props.dispatch(getBuyOrder(this.props.coin));
               this.props.dispatch(getHold(this.props.userName, message.coin));
               this.props.dispatch(getMyOrders(this.props.userName, message.coin));
-              this.props.dispatch(getTransaction(this.props.userName, message.coin));
+              this.props.dispatch(fetchTransaction(this.props.userName, message.coin, 0));
             }
             break;
           }

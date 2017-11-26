@@ -252,9 +252,10 @@ export function getBalance(req, res) {
                   user: {
                     coin: sanitizeHtml(req.params.coin),
                     address: address[0].address,
-                    balance: data.balance + data.final_balance,
+                    balance: data.final_balance - Number(hold),
                     unconfirmedBalance: data.unconfirmed_balance,
-                    hold: Number(hold), history: []
+                    hold: Number(hold),
+                    history: []
                   }
                 });
               });

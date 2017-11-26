@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Modal, Button, Form, FormGroup, Col, FormControl, ControlLabel, HelpBlock, InputGroup } from 'react-bootstrap';
-import { onSignIn, onSignUp, onCloseSign, loginRequest, login, getBalance, getMyOrders, getTransaction, googleFactor } from '../../AppActions';
+import { onSignIn, onSignUp, onCloseSign, loginRequest, login, getBalance, getMyOrders, fetchTransaction, googleFactor } from '../../AppActions';
 import { getSignIn, getCoin, getGoogleAuthentication } from '../../AppReducer';
 
 class SignInDialog extends Component{
@@ -11,6 +11,7 @@ class SignInDialog extends Component{
     this.state = {
       email: '',
       password: '',
+      error: '',
 
       emailError: '',
       passwordError: '',
@@ -47,7 +48,7 @@ class SignInDialog extends Component{
       }
       this.setState({error: ''});
       this.props.dispatch(getMyOrders(res.user.userName, this.props.coin));
-      this.props.dispatch(getTransaction(res.user.userName, this.props.coin));
+      this.props.dispatch(fetchTransaction(res.user.userName, this.props.coin, 0));
       this.props.dispatch(getBalance(res.user.userName, 'BTC'));
       this.props.dispatch(getBalance(res.user.userName, 'USDT'));
       this.props.dispatch(getBalance(res.user.userName, 'ETH'));
@@ -137,8 +138,8 @@ class SignInDialog extends Component{
   render(){
     return (
       <Modal show={this.props.isSignIn}>
-        <Modal.Header>
-          <Modal.Title>Đăng nhập</Modal.Title>
+        <Modal.Header style={{ backgroundColor: 'rgb(10, 105, 112)' }}>
+          <Modal.Title style={{ textAlign: 'center', color: 'white', fontWeight: 'bold' }}>Đăng nhập</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form horizontal>
@@ -191,16 +192,20 @@ class SignInDialog extends Component{
                 </FormGroup>
                 ) : ''
             }
-            <FormGroup controlId="error" validationState='error' >
-              <Col sm={6} smOffset={3} >
-                <HelpBlock>{this.state.error}</HelpBlock>
-              </Col>
-            </FormGroup>
+            {
+              (this.state.error !== '') ? (
+                <FormGroup controlId="error" validationState='error' >
+                  <Col sm={6} smOffset={3} >
+                    <HelpBlock>{this.state.error}</HelpBlock>
+                  </Col>
+                </FormGroup>
+              ) : ''
+            }
           </Form>
         </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={this.onSigningIn} disabled={this.state.isLoggingIn || this.state.isGoogle}>Đăng nhập</Button>
-          <Button onClick={this.onHide} disabled={this.state.isLoggingIn || this.state.isGoogle}>Thoát</Button>
+        <Modal.Footer style={{ backgroundColor: 'rgb(10, 105, 112)', textAlign: 'center' }}>
+          <Button onClick={this.onSigningIn} bsStyle="success" disabled={this.state.isLoggingIn || this.state.isGoogle}>Đăng nhập</Button>
+          <Button onClick={this.onHide} bsStyle="danger" disabled={this.state.isLoggingIn || this.state.isGoogle}>Thoát</Button>
         </Modal.Footer>
       </Modal>
     );

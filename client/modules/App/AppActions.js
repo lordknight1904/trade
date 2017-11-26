@@ -22,7 +22,21 @@ export const ACTIONS = {
   SET_CONFIRMATION: 'SET_CONFIRMATION',
   SET_IS_SUBMITTING: 'SET_IS_SUBMITTING',
   REFETCH_USER_PROFILE: 'REFETCH_USER_PROFILE',
+  SET_HISTORY_PAGE: 'SET_HISTORY_PAGE',
+  SET_HISTORY_MAX_PAGE: 'SET_HISTORY_MAX_PAGE',
 };
+export function setHistoryMaxPage(page) {
+  return {
+    type: ACTIONS.SET_HISTORY_MAX_PAGE,
+    page
+  };
+}
+export function setHistoryPage(page) {
+  return {
+    type: ACTIONS.SET_HISTORY_PAGE,
+    page
+  };
+}
 export function refetchUserProfile(user) {
   return {
     type: ACTIONS.REFETCH_USER_PROFILE,
@@ -141,7 +155,6 @@ export function updateHold(wallet) {
   };
 }
 export function getHold(userName, coin) {
-  console.log(`user/hold/${userName}/${coin}`);
   return (dispatch) => {
     return callApi(`user/hold/${userName}/${coin}`, 'get', '' ).then(res => {
       console.log(res);
@@ -188,10 +201,12 @@ export function setIsSubmitting(){
     type: ACTIONS.SET_IS_SUBMITTING,
   };
 }
-export function getTransaction(userName, coin) {
+export function fetchTransaction(userName, coin, page) {
   return (dispatch) => {
-    return callApi(`/transaction/${userName}/${coin}`).then(res => {
+    return callApi(`/history/${userName}/${coin}?page=${page}`).then(res => {
       dispatch(addTransaction(res.transaction));
+      dispatch(setHistoryMaxPage(res.count));
+      dispatch(setHistoryPage(1));
     });
   };
 }

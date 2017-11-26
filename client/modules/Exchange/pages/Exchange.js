@@ -10,6 +10,7 @@ import BuyOrderList from '../components/BuyOrderList/BuyOrderList';
 import SellOrderList from '../components/SellOrderList/SellOrderList';
 import OrderList from '../components/OrderList/OrderList';
 import History from '../components/History/History';
+import appStyles from '../../App/App.css';
 
 class Exchange extends Component {
   constructor(props){
@@ -29,7 +30,7 @@ class Exchange extends Component {
   };
   render(){
     return (
-      <div>
+      <div className={appStyles.container} style={{ marginTop: '-50px' }} >
         <Rate />
         <Row>
           <Col md={6}>

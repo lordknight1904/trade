@@ -52,6 +52,14 @@ class Header extends Component{
         }
         break;
       }
+      case 'history': {
+        if (this.props.id === '' ) {
+          this.props.dispatch(onSignIn());
+        } else {
+          this.context.router.push('/history');
+        }
+        break;
+      }
       default: break;
     }
   };
@@ -83,10 +91,11 @@ class Header extends Component{
             ) : (
               <Nav className={styles.noneBlue} pullRight onSelect={this.handleUser}>
                 <NavDropdown title={this.props.userName} id="basic-nav-dropdown">
-                  <MenuItem eventKey="profile">Hồ sơ</MenuItem>
-                  <MenuItem eventKey="wallet">Ví điện tử</MenuItem>
+                  <MenuItem eventKey="profile"><Glyphicon glyph="glyphicon glyphicon-hdd" />  Hồ sơ</MenuItem>
+                  <MenuItem eventKey="wallet"><Glyphicon glyph="glyphicon glyphicon-credit-card" />  Ví điện tử</MenuItem>
+                  <MenuItem eventKey="history"><Glyphicon glyph="glyphicon glyphicon-list" />  Lịch sử giao dịch</MenuItem>
                   <MenuItem divider />
-                  <MenuItem eventKey="logOut">Đăng xuất</MenuItem>
+                  <MenuItem eventKey="logOut"><Glyphicon glyph="glyphicon glyphicon-log-out" /> Đăng xuất</MenuItem>
                 </NavDropdown>
               </Nav>
             )

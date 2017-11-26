@@ -6,6 +6,7 @@ import { setNotify, directSend } from '../../App/AppActions';
 import { Table, FormGroup, HelpBlock, FormControl, Button } from 'react-bootstrap';
 import numeral from 'numeral';
 import styles from '../wallet.css';
+import appStyles from '../../App/App.css';
 
 class Wallet extends Component{
   constructor(props){
@@ -15,6 +16,7 @@ class Wallet extends Component{
       coin: {},
       address: '',
       amount: 0,
+      isSending: false,
     };
   }
   componentWillMount() {
@@ -43,8 +45,9 @@ class Wallet extends Component{
       address: this.state.address,
       amount: Number(this.state.amount) * Number(this.state.coin.unit),
     };
-    console.log(send);
+    this.setState({ isSending: true });
     this.props.dispatch(directSend(send)).then((res) => {
+      this.setState({ isSending: false });
       this.props.dispatch(setNotify(res.order));
     });
   };
@@ -52,9 +55,9 @@ class Wallet extends Component{
   onAmount = (event) => { this.setState({ amount: event.target.value }); };
   render(){
     const wallet = this.props.wallet;
-    console.log(wallet);
+    const coin = this.props.coinList.filter((cl) => {return cl.name === this.state.coin;});
     return (
-      <Table striped bordered condensed hover>
+      <Table striped bordered condensed hover className={`${styles.tableStripped} ${appStyles.container}`} >
         <thead>
           <tr>
             <th>Coin</th>
@@ -81,30 +84,30 @@ class Wallet extends Component{
         }
         {
           (this.state.type === 'send') ? (
-              <tr>
-                <th colSpan="4">
-                  <FormGroup style={{ marginBottom: '0' }} >
-                    <FormControl type="text" onChange={this.onAddress} placeholder={`Đỉa chỉ ví ${this.state.coin.name} nhận`} />
-                    <FormControl type="text" onChange={this.onAmount} placeholder="Số lượng" />
-                  </FormGroup>
-                  <p style={{ float: 'left' }}>Phí chuyển</p>
-                  <p style={{ float: 'right'}}>0.0005</p>
-                  <br/>
-                  <Button style={{ float: 'right' }} onClick={this.sendCoin}>Gửi</Button>
-                </th>
-                <th>
-                  <p className={styles.pHover} style={{ float: 'left' }}>Hủy</p>
-                </th>
-              </tr>
-            ) : ''
+            <tr>
+              <th colSpan="4" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+                <FormGroup style={{ marginBottom: '5px' }} >
+                  <FormControl type="text" onChange={this.onAddress} placeholder={`Đỉa chỉ ví ${this.state.coin.name} nhận`}style={{ marginBottom: '5px' }} />
+                  <FormControl type="text" onChange={this.onAmount} placeholder="Số lượng" />
+                </FormGroup>
+                <p style={{ float: 'left' }}>Phí chuyển</p>
+                <p style={{ float: 'right'}}>{}</p>
+                <br/>
+                <Button style={{ float: 'right' }} bsStyle="primary" bsSize="xsmall" disabled={this.state.isSending} onClick={this.sendCoin}>Gửi</Button>
+              </th>
+              <th>
+                <p className={styles.pHover} style={{ float: 'left' }}>Hủy</p>
+              </th>
+            </tr>
+          ) : ''
         }
         {
           this.props.coinList.map((cl, index) => (
             <tr key={index}>
               <th>{cl.name}</th>
-              <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].balance / cl.unit).format('0,0.000000') : '~'}</th>
-              <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].unconfirmedBalance / cl.unit).format('0,0.000000') : '~'}</th>
-              <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].hold / cl.unit).format('0,0.000000') : '~'}</th>
+              <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].balance / cl.unit).format('0,0.[000000]') : '~'}</th>
+              <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].unconfirmedBalance / cl.unit).format('0,0.[000000]') : '~'}</th>
+              <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].hold / cl.unit).format('0,0.[000000]') : '~'}</th>
               <th style={{ fontWeight: 'normal' }}>
                 <p className={styles.pHover} style={{ float: 'left' }} onClick={() => this.handleAction('address', cl)}>Nạp Coin</p>
                 <p className={styles.pHover} style={{ float: 'right' }} onClick={() => this.handleAction('send', cl)}>Chuyển Coin</p>

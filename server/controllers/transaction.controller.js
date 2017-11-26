@@ -2,6 +2,7 @@ import Transaction from '../models/transaction';
 import User from '../models/user';
 import sanitizeHtml from 'sanitize-html';
 import * as btc from '../util/btc';
+import * as eth from '../util/eth';
 import * as usdt from '../util/usdt';
 
 export function getCoinLatestPrice(req, res) {
@@ -18,6 +19,7 @@ export function getCoinLatestPrice(req, res) {
   });
 }
 export function getTransaction(req, res) {
+  const page = req.query.page ? req.query.page: 0;
   if (req.params.userName && req.params.coin) {
     User.findOne({ userName: req.params.userName }).exec((err, user) => {
       if (err) {
@@ -26,23 +28,34 @@ export function getTransaction(req, res) {
         if (user) {
           Transaction
             .find({ $or: [{ from: user._id }, { to: user._id }], coin: req.params.coin })
+            .limit(20)
+            .skip(20 * page)
             .select({ _id: 0 })
             .populate('from', { userName: 1, _id: 0 })
             .populate('to', { userName: 1, _id: 0 })
             .exec((err2, transaction) => {
             if (err2) {
-              res.json({ transaction: [] });
+              res.json({ transaction: [], count: 0 });
             } else {
-              res.json({ transaction });
+              Transaction.find({ $or: [{ from: user._id }, { to: user._id }], coin: req.params.coin }).count().exec((err3, count) => {
+                if (err3) {
+                  res.json({ transaction: [], count: 0 });
+                } else {
+                  const temp1 = Math.round(count / 20);
+                  const temp2 = (count % 20 === 0) ? 0 : 1;
+                  const length = temp1 + temp2;
+                  res.json({ transaction, count: (count !== 0) ? length : 0 });
+                }
+              });
             }
           })
         } else {
-          res.json({ transaction: [] });
+          res.json({ transaction: [], count: 0 });
         }
       }
     });
   } else {
-    res.json({ transaction: [] });
+    res.json({ transaction: [], count: 0 });
   }
 }
 export function getHash(req, res) {
@@ -50,6 +63,14 @@ export function getHash(req, res) {
     switch (req.params.coin) {
       case 'BTC': {
         btc.getHash(req.params.txHash).catch(() => {
+          res.json({ confirmations: -1 });
+        }).then((data) => {
+          res.json({ confirmations: data });
+        });
+        break;
+      }
+      case 'ETH': {
+        eth.getHash(req.params.txHash).catch(() => {
           res.json({ confirmations: -1 });
         }).then((data) => {
           res.json({ confirmations: data });

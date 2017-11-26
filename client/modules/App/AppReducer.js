@@ -18,9 +18,9 @@ const initialState = {
 
   coin: 'BTC',
   coinList: [
-    { name: 'USDT', unit: 100000, fee: 0 },
+    { name: 'USDT', unit: 100000, fee: 50000 },
     { name: 'BTC', unit: 100000000, fee: 50000 },
-    { name: 'ETH', unit: 1000000000000000000, fee: 50000 },
+    { name: 'ETH', unit: 1000000000000000000, fee: 0 },
   ],
 
   isSubmitting: false,
@@ -42,10 +42,17 @@ const initialState = {
   detail: false,
   transactionDetail: {},
   confirmations: -1,
+
+  historyPage: 1,
+  historyMaxPage: 1,
 };
 
 const AppReducer = (state = initialState, action) => {
   switch (action.type) {
+    case ACTIONS.SET_HISTORY_PAGE:
+      return { ...state, historyPage: action.page };
+    case ACTIONS.SET_HISTORY_MAX_PAGE:
+      return { ...state, historyMaxPage: action.page };
     case ACTIONS.SET_IS_SUBMITTING:
       return { ...state, isSubmitting: true };
     case ACTIONS.SET_CONFIRMATION:
@@ -83,7 +90,6 @@ const AppReducer = (state = initialState, action) => {
         phone: action.user.phone,
       };
     case ACTIONS.REFETCH_USER_PROFILE:
-      console.log(action.user);
       return {
         ...state,
         email: action.user.email,
@@ -174,6 +180,9 @@ export const getRequireInform = state => state.app.requireInform;
 export const getDetail = state => state.app.detail;
 export const getTransactionDetail = state => state.app.transactionDetail;
 export const getConfirmations = state => state.app.confirmations;
+
+export const getHistoryPage = state => state.app.historyPage;
+export const getHistoryMaxPage = state => state.app.historyMaxPage;
 
 // Export Reducer
 export default AppReducer;

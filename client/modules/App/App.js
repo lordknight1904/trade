@@ -77,7 +77,7 @@ export class App extends Component {
             <SocketController />
             <Header />
 
-            <div className={styles.container}>
+            <div style={{ paddingTop: '70px' }}>
               {this.props.children}
             </div>
             {/*<Footer />*/}
