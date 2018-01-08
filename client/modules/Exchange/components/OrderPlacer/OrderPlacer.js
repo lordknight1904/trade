@@ -1,176 +1,186 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Panel, Form, FormGroup, InputGroup, FormControl, Col, ControlLabel, Button } from 'react-bootstrap';
+import { Panel, Form, InputGroup, Col, ControlLabel, Tabs, Tab, Nav, NavItem, FormGroup, FormControl, HelpBlock, Button  } from 'react-bootstrap';
 import { onSignIn, onSignUp, setNotify } from '../../../App/AppActions';
-import { getId, getToken, getCoin, getCoinList } from '../../../App/AppReducer';
-import OrderPlacerHeader from './OrderPlacerHeader';
+import { getId, getCoinList, getCoin, getWallet } from '../../../App/AppReducer';
 import { createOrder } from '../../ExchangeActions';
 import style from '../../../App/App.css';
+import exchangeStyles from '../../pages/Exchange.css';
 import numeral from 'numeral';
+
 class OrderPlacer extends Component{
   constructor(props){
     super(props);
     this.state = {
-      price: 0,
-      amount: 0,
-      total: 0,
+      type: 'buy',
+      amountBlock: '',
+      priceBlock: '',
 
-      base: 'price',
-      oldOrderListSelected: {},
-      isSending: false
+      amount: 0,
+      price: 0,
+      oldSelectedOrder: {},
     };
   }
   componentWillReceiveProps(nextProps) {
-    if (this.state.oldOrderListSelected._id !== nextProps.orderListSelected._id) {
-      const coin = this.props.coinList.filter((c) => { return c.name === nextProps.orderListSelected.coin; });
+    if (this.state.oldSelectedOrder._id !== nextProps.selectedOrder._id) {
+      const coin = this.props.coinList.filter((c) => { return c.name === nextProps.selectedOrder.coin; });
       const unit = (coin.length > 0) ? coin[0].unit : 0;
       this.setState({
-        oldOrderListSelected: nextProps.orderListSelected,
-        price: nextProps.orderListSelected.price,
-        amount: nextProps.orderListSelected.amountRemain / unit,
-        total: nextProps.orderListSelected.price * nextProps.orderListSelected.amountRemain / unit,
+        oldSelectedOrder: nextProps.selectedOrder,
+        type: (nextProps.selectedOrder.type === 'sell') ? 'buy' : 'sell',
+        price: nextProps.selectedOrder.price,
+        amount: nextProps.selectedOrder.amountRemain / unit,
+        total: nextProps.selectedOrder.price * nextProps.selectedOrder.amountRemain / unit,
       });
     }
   }
-  isNumber = (n) => {
-    return !isNaN(+n) && isFinite(n);
-  };
-  onChangePrice = (event) => {
+  onAmount = (event) => {
     const count = (event.target.value.match(/\./g) || []).length;
     const number = numeral(event.target.value).format('0,0.[000000]');
     switch (count) {
       case 0: {
-        this.setState({ price: number, total: ( numeral(event.target.value).value()) * numeral(this.state.amount).value(), base: 'price' });
+        this.setState({ amount: number });
         break;
       }
       case 1: {
-        this.setState({ price: event.target.value, total: numeral(event.target.value).add(0.0).format('0,0.[000000]') * numeral(this.state.amount).value(), base: 'price' });
+        this.setState({ amount: event.target.value });
         break;
       }
       default: {
-        this.setState({ price: number, total: ( numeral(event.target.value).value()) * numeral(this.state.amount).value(), base: 'price' });
+        this.setState({ amount: number });
         break;
       }
     }
   };
-  onChangeAmount = (event) => {
+  onPrice = (event) => {
     const count = (event.target.value.match(/\./g) || []).length;
     const number = numeral(event.target.value).format('0,0.[000000]');
     switch (count) {
       case 0: {
-        this.setState({ amount: number, total: (number) * numeral(this.state.price).value(), base: 'price' });
+        this.setState({ price: number });
         break;
       }
       case 1: {
-        this.setState({ amount: event.target.value, total: numeral(event.target.value).add(0.0).format('0,0.[000000]') * numeral(this.state.price).value(), base: 'price' });
+        this.setState({ price: event.target.value });
         break;
       }
       default: {
-        this.setState({ amount: number, total: (number) * numeral(this.state.price).value(), base: 'price' });
+        this.setState({ price: number });
         break;
       }
     }
   };
-  onChangeTotal = (event) => {
-    const count = (event.target.value.match(/\./g) || []).length;
-    const number = numeral(event.target.value).format('0,0.[000000]');
-    switch (this.state.base) {
-      case 'price': {
-        this.setState({ total: (count === 1) ? event.target.value.trim() : number, amount: numeral(number / numeral(this.state.price).value()).format('0,0.[000000]') });
-        break;
-      }
-      case 'amount': {
-        this.setState({ total: (count === 1) ? event.target.value.trim() : number, price: numeral(number / numeral(this.state.amount).value()).format('0,0.[000000]') });
-        break;
-      }
-      default: break;
-    }
+  handleSelect = (type) => {
+    this.setState({ type });
   };
+
   onOrder = () => {
-    if (this.isNumber(this.state.price) && Number(this.state.price) > 0 &&
-      this.isNumber(this.state.amount) && Number(this.state.amount) > 0
-    ) {
-      const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; })[0];
-      const order = {
-        userId: this.props.id,
-        type: (this.props.type === 'Mua') ? 'buy' : 'sell',
-        coin: this.props.coin,
-        price: Number(this.state.price),
-        amount: Number(this.state.amount) * Number(coin.unit),
-      };
-      this.setState({ isSending: true });
-      this.props.dispatch(createOrder(this.props.token, order)).then((res) => {
-        this.setState({ isSending: false });
-        if (res.order === 'success') {
-          this.props.dispatch(setNotify('Đặt lệnh thành công.'));
-        } else {
-          this.props.dispatch(setNotify(res.order.toString()));
-        }
-      })
-    } else {
-      this.props.dispatch(setNotify('Xin vui lòng kiểm tra thông tin nhập.'));
+    if (this.props.id === '') {
+      this.props.dispatch(setNotify('Sign In or Sign up to start trading.'));
+      return;
     }
+    if (numeral(this.state.price).value() <= 0) {
+      this.props.dispatch(setNotify('Price must be greater than 0.'));
+      return;
+    }
+    if (numeral(this.state.amount).value() <= 0) {
+      this.props.dispatch(setNotify('Amount must be greater than 0.'));
+      return;
+    }
+    let coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; });
+    if (coin.length < 0) {
+      return;
+    }
+    const order = {
+      userId: this.props.id,
+      type: this.state.type,
+      coin: this.props.coin,
+      price: numeral(this.state.price).value(),
+      amount: numeral(this.state.amount).value() * Number(coin[0].unit),
+    };
+    this.setState({ isSending: true });
+    this.props.dispatch(createOrder(this.props.token, order)).then((res) => {
+      this.setState({ isSending: false });
+      if (res.order === 'success') {
+        this.setState({ price: 0, amount: 0 });
+        this.props.dispatch(setNotify('Orders successful placed.'));
+      } else {
+        this.props.dispatch(setNotify(res.order.toString()));
+      }
+    })
   };
   render() {
-    const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; })[0];
-    const usdt = this.props.coinList.filter((c) => { return c.name === 'USDT'; })[0];
+    const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; });
+    const unit = (coin.length > 0) ? coin[0].unit : 0;
+    const wallet = this.props.wallets[this.props.coin];
+    const balance = (wallet !== undefined) ? ((wallet.balance) / unit) : 'NaN';
 
-    const coinFee = numeral(coin.fee / coin.unit).format('0,0.[000000]');
-    const usdtFee = numeral(usdt.fee / usdt.unit).format('0,0.[000000]');
+    const wallet2 = this.props.wallets['USDT'];
+    const usdt = (wallet2 !== undefined) ? (wallet2.balance - wallet2.hold) : 'NaN';
     return (
-      <Panel header={<OrderPlacerHeader type={this.props.type} />} style={{ border: '1px solid #91abac' }} className={style.panelStyle}>
-        <Form horizontal>
-          <FormGroup>
-            <Col sm={3} className="control-label">Giá</Col>
-            <Col sm={9}>
-              <InputGroup>
-                <FormControl type="text" onChange={this.onChangePrice} value={this.state.price} />
-                <InputGroup.Addon style={{ width: '100px', backgroundColor: '#b3d5d6' }}>USDT</InputGroup.Addon>
-              </InputGroup>
-            </Col>
-          </FormGroup>
-
-          <FormGroup>
-            <Col sm={3} className="control-label">Số lượng</Col>
-            <Col sm={9}>
-              <InputGroup>
-                <FormControl type="text" onChange={this.onChangeAmount} value={this.state.amount} />
-                <InputGroup.Addon style={{ width: '100px', backgroundColor: '#b3d5d6' }}>{coin.name}</InputGroup.Addon>
-              </InputGroup>
-            </Col>
-          </FormGroup>
-
-          <FormGroup style={{ marginBottom: '35px' }}>
-            <Col sm={3} className="control-label">Tổng cộng</Col>
-            <Col sm={9}>
-              <InputGroup>
-                <FormControl type="text" onChange={this.onChangeTotal} value={numeral(Number(this.state.total)).format('0,0.[000000]')} />
-                <InputGroup.Addon style={{ width: '100px', backgroundColor: '#b3d5d6' }}>USDT</InputGroup.Addon>
-              </InputGroup>
-            </Col>
-          </FormGroup>
-
-          <p>{`Phí giao dịch chiếm ${coinFee} ${this.props.coin} và ${usdtFee} USDT`}</p>
-
-          {
-            (this.props.id) ? (
-                <FormGroup>
-                  <Col mdOffset={9} md={2}>
-                    <Button onClick={this.onOrder} bsStyle="warning" disabled={this.state.isSending}>{this.props.type}</Button>
-                  </Col>
+      <div className={`row ${exchangeStyles.main}`} >
+        {
+          (this.props.id !== '') ? (
+              <Col md={12}>
+                <FormGroup controlId='coinOwnLabel'>
+                  <ControlLabel className={exchangeStyles.customLabel}>{this.props.coin}</ControlLabel>
+                  <ControlLabel className={exchangeStyles.customLabel} style={{ float: 'right' }}>{balance}</ControlLabel>
                 </FormGroup>
-              ) : (
-                <FormGroup>
-                  <Button bsStyle="link" onClick={() => this.props.dispatch(onSignIn())}>Đăng nhập</Button>
-                  hoặc
-                  <Button bsStyle="link" onClick={() => this.props.dispatch(onSignUp())}>đăng ký</Button>
-                  để bắt đầu giao dịch
+
+                <FormGroup controlId='usdtOwnLabel'>
+                  <ControlLabel className={exchangeStyles.customLabel}>USDT</ControlLabel>
+                  <ControlLabel className={exchangeStyles.customLabel} style={{ float: 'right' }}>{usdt}</ControlLabel>
                 </FormGroup>
-              )
-          }
-        </Form>
-      </Panel>
+              </Col>
+            ) : ''
+        }
+        <Col md={12}>
+          <button
+            className={`${exchangeStyles.modeButton} ${(this.state.type === 'buy') ? exchangeStyles.buyActive : ''}`}
+            onClick={() => this.handleSelect('buy')}
+          >
+            BUY
+          </button>
+          <button
+            className={`${exchangeStyles.modeButton} ${(this.state.type === 'sell') ? exchangeStyles.sellActive : ''}`}
+            onClick={() => this.handleSelect('sell')}
+          >
+            SELL
+          </button>
+        </Col>
+        <Col md={12}>
+          <Form>
+            <FormGroup controlId='formAmount'>
+              <ControlLabel className={exchangeStyles.customLabel}>Amount</ControlLabel>
+              <FormControl autoComplete='off' type="text" value={this.state.amount} onChange={this.onAmount}/>
+              {
+                (this.state.amountBlock !== '') ? (
+                    <HelpBlock>{this.state.amountBlock}</HelpBlock>
+                  ) : ''
+              }
+            </FormGroup>
+            <FormGroup controlId='formPrice'>
+              <ControlLabel className={exchangeStyles.customLabel}>Price</ControlLabel>
+              <FormControl autoComplete='off' type="text" value={numeral(this.state.price).format('0,0.[000000]')} onChange={this.onPrice}/>
+              {
+                (this.state.priceBlock !== '') ? (
+                    <HelpBlock>{this.state.amountBlock}</HelpBlock>
+                  ) : ''
+              }
+            </FormGroup>
+            <FormGroup controlId='totalLabel'>
+              <ControlLabel className={exchangeStyles.customLabel}>Total</ControlLabel>
+              <ControlLabel className={exchangeStyles.customLabel} style={{ float: 'right' }}>
+                {`${numeral(numeral(this.state.amount).value() * numeral(this.state.price).value()).format('0,0.[000000]')} USDT`}
+              </ControlLabel>
+            </FormGroup>
+            <button type="button" disabled={this.state.isSending} onClick={this.onOrder} className={`${exchangeStyles.submitButton} ${(this.state.type === 'buy') ? exchangeStyles.buyActive : exchangeStyles.sellActive}`}>
+              {(this.state.type === 'buy') ? 'PLACE BUY ORDER' : 'PLAY SELL ORDER'}
+            </button>
+          </Form>
+        </Col>
+      </div>
     );
   }
 }
@@ -178,19 +188,17 @@ class OrderPlacer extends Component{
 function mapStateToProps(state) {
   return {
     id: getId(state),
-    token: getToken(state),
     coin: getCoin(state),
     coinList: getCoinList(state),
+    wallets: getWallet(state),
   };
 }
 OrderPlacer.propTypes = {
   dispatch: PropTypes.func,
   id: PropTypes.string.isRequired,
-  token: PropTypes.string.isRequired,
   coin: PropTypes.string.isRequired,
   coinList: PropTypes.array.isRequired,
-  type: PropTypes.string.isRequired,
-  orderListSelected: PropTypes.object.isRequired,
+  wallets: PropTypes.object.isRequired,
 };
 OrderPlacer.contextTypes = {
   router: PropTypes.object,

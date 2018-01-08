@@ -7,46 +7,9 @@ import bigi from 'bigi';
 import bitcoin from 'bitcoinjs-lib';
 import buffer from 'buffer';
 import Order from '../models/order';
-
-export function addressToAddressWithFee(userFrom, userTo, amount, fee, exchangeFee) {
-  return new Promise((resolve) => {
-    const newtx = {
-      inputs: [{addresses: [userFrom.address]}],
-      outputs: [
-        {addresses: [userTo.address], value: Number(amount)}
-      ],
-      fees: Number(fee)
-    };
-    usdt.newTX(newtx, function(err, data) {
-      if (err) {
-        resolve({ code: 'error', error: err });
-      } else {
-        let keys = null;
-        keys = new bitcoin.ECPair(bigi.fromHex(userFrom.private));
-        data.pubkeys = [];
-        data.signatures = data.tosign.map( function(tosign) {
-          data.pubkeys.push(keys.getPublicKeyBuffer().toString('hex'));
-          return keys.sign(new buffer.Buffer(tosign, 'hex')).toDER().toString('hex');
-        });
-        usdt.sendTX(data, function (err2, ret) {
-          if (err2) {
-            resolve({ code: 'error', error: err2 });
-          } else {
-            const webhook2 = {
-              'event': 'tx-confirmation',
-              'address': userTo.address,
-              'url': `http://c2e8dfae.ngrok.io/api/trade/${userTo.address}`,
-              confirmations: 6
-            };
-            usdt.createHook(webhook2, (err3, d) => {
-            });
-            resolve({ code: 'done' });
-          }
-        });
-      }
-    });
-  });
-}
+import Transaction from '../models/transaction';
+import mongoose from 'mongoose';
+import numeral from 'numeral';
 
 export function getHash(txHash) {
   return new Promise((resolve, reject) => {
@@ -59,31 +22,6 @@ export function getHash(txHash) {
     });
   });
 }
-export function addAddress() {
-  return new Promise((resolve, reject) => {
-    usdt.genAddr({},(err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    });
-  });
-}
-export function faucet(address) {
-  usdt.faucet(address, 500000, () => {});
-}
-export function getAddress(address) {
-  return new Promise((resolve, reject) => {
-    usdt.getAddr(address, {}, (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    });
-  });
-}
 export function getHold(id) {
   return new Promise((resolve, reject) => {
     Order.find({ userId: id, type: 'buy', $or: [{ stage: 'open' }] }).exec((err, order) => {
@@ -92,9 +30,51 @@ export function getHold(id) {
       } else {
         let hold = 0;
         order.map((o) => {
-          hold += o.amountRemain / 100000 * o.price;
+          let unit = 0;
+          switch (o.coin) {
+            case 'BTC': {
+              unit = 100000000;
+              break;
+            }
+            case 'ETH': {
+              unit = 1000000000000000000;
+              break;
+            }
+          }
+          hold += o.amountRemain / unit * o.price;
         });
+        console.log(hold);
         resolve(hold);
+      }
+    });
+  });
+}
+export function getBalance(id) {
+  return new Promise((resolve, reject) => {
+    Transaction.find({ $or: [{ from: mongoose.Types.ObjectId(id) }, { to: mongoose.Types.ObjectId(id)}] }).exec((err, transactions) => {
+      if (err) {
+        resolve({ balance: 0 });
+      } else {
+        let balance = 0;
+        let unit = 0;
+        transactions.map((t) => {
+          switch (t.coin) {
+            case 'BTC': {
+              unit = 100000000;
+              break;
+            }
+            case 'ETH': {
+              unit = 1000000000000000000;
+              break;
+            }
+          }
+          if (id === t.from) {
+            balance -= numeral(t.amount).value() / unit * numeral(t.price).value();
+          } else {
+            balance += numeral(t.amount).value() / unit * numeral(t.price).value();
+          }
+        });
+        resolve({ balance });
       }
     });
   });

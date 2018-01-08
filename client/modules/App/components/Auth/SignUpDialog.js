@@ -46,31 +46,31 @@ class SignUpDialog extends Component{
         this.setState({ isSigningUp: false });
         this.props.dispatch(onCloseSign());
         if (res.user.code === 'success') {
-          this.props.dispatch(setNotify('Đăng ký thành công \n Vui lòng kiềm tra email để kích hoạt tài khoản.'));
+          this.props.dispatch(setNotify('Sign up completed. \n Please check your email to activate account.'));
         } else {
-          this.props.dispatch(setNotify(res.user.code));
+          this.props.dispatch(setNotify('Account existed.'));
         }
       });
     } else {
       if (this.state.email === '') {
-        this.setState({ emailError: 'Xin vui lòng nhập Email.' });
+        this.setState({ emailError: 'Input your Email.' });
       }
       if (this.state.userName === '') {
-        this.setState({ userNameError: 'Xin vui lòng nhập tên tài khoản.' });
+        this.setState({ userNameError: 'Input your account name' });
       }
       if (this.state.password === '') {
-        this.setState({ passwordError: 'Xin vui lòng nhập mật khẩu.' });
+        this.setState({ passwordError: 'Input your password' });
       }
     };
   };
   handleEmail = (event) => {
     if (event.target.value.trim() === '') {
-      this.setState({email: event.target.value.trim(), emailError: 'Trườg này không được trống.'});
+      this.setState({email: event.target.value.trim(), emailError: 'This field cannot be empty.'});
     } else {
       if (this.validateEmail(event.target.value.trim())) {
         this.setState({email: event.target.value.trim(), emailError: ''});
       } else {
-        this.setState({email: event.target.value.trim(), emailError: 'Email không đúng định dạng.'});
+        this.setState({email: event.target.value.trim(), emailError: 'Wrong Email format.'});
       }
     }
   };
@@ -79,32 +79,32 @@ class SignUpDialog extends Component{
   };
   handlePassword = (event) => {
     if (event.target.value.trim() === '') {
-      this.setState({ password: event.target.value.trim(), passwordError: 'Trường này không được trống.' });
+      this.setState({ password: event.target.value.trim(), passwordError: 'This field cannot be empty.' });
     } else {
       this.setState({ password: event.target.value.trim(), passwordError: '' });
     }
   };
   handleEmailBlur = (event) => {
     if (event.target.value.trim() === '') {
-      this.setState({ emailError: 'Trườg này không được trống.'});
+      this.setState({ emailError: 'This field cannot be empty.'});
     } else {
       if (this.validateEmail(event.target.value.trim())) {
         this.setState({ emailError: ''});
       } else {
-        this.setState({ emailError: 'Email không đúng định dạng.'});
+        this.setState({ emailError: 'Wrong Email format.'});
       }
     }
   };
   handleUserNameBlur = (event) => {
     if (event.target.value.trim() === '') {
-      this.setState({ userNameError: 'Trườg này không được trống.'});
+      this.setState({ userNameError: 'This field cannot be empty.'});
     } else {
       this.setState({ userNameError: ''});
     }
   };
   handlePasswordBlur = (event) => {
     if (event.target.value.trim() === '') {
-      this.setState({ passwordError: 'Trườg này không được trống.'});
+      this.setState({ passwordError: 'This field cannot be empty.'});
     } else {
       this.setState({ passwordError: ''});
     }

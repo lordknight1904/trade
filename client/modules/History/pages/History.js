@@ -77,16 +77,16 @@ class History extends Component{
             }}
           />
         </div>
-        <Panel header="Các giao dịch đã thực hiện" className={style.panelStyleTable}>
+        <Panel header="Completed transactions" className={style.panelStyleTable}>
           <Table striped bordered condensed hover responsive className={style.tableStripped}>
             <thead>
             <tr>
-              <th>Ngày</th>
-              <th>Loại</th>
-              <th>Giá</th>
-              <th>Số lượng</th>
-              <th>Phí</th>
-              <th>Tổng cộng(USDT)</th>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Price</th>
+              <th>Amount</th>
+              <th>Fee</th>
+              <th>Total(USDT)</th>
             </tr>
             </thead>
             <tbody>
@@ -96,10 +96,11 @@ class History extends Component{
                 const hours =  date.getHours() < 10 ? `0${date.getHours()}` : date.getHours();
                 const minutes =  date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes();
                 const time = `${date.getDay()}/${date.getMonth()}/${date.getFullYear()} ${hours}:${minutes}`;
+                console.log(trans);
                 return (
                   <tr key={index} onClick={() => { this.detail(trans);}}>
                     <th>{time}</th>
-                    <th>{(this.props.userName === trans.from.userName) ? 'Bán' : 'Mua'}</th>
+                    <th>{(trans.hasOwnProperty('from') && this.props.userName === trans.from.userName) ? 'Sell' : 'Buy'}</th>
                     <th>{numeral(trans.price).format('0,0.[000000]')}</th>
                     <th>{numeral(trans.amount / unit).format('0,0.[000000]')}</th>
                     <th>

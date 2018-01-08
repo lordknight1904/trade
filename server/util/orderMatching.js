@@ -80,6 +80,7 @@ function makeTransactionOrderToOrder(s, b) {
         .exec((errUpdate) => {
           if (errUpdate) {
           } else {
+            console.log('here');
             console.log(`khớp lệnh với giá ${b.price} ${s.price}`);
             User.findOne({ _id: s.userId }).exec((err, userFrom) => {
               if (err) {}
@@ -94,78 +95,73 @@ function makeTransactionOrderToOrder(s, b) {
                         api.transactionWithFee(userFrom, userTo, s, b, addressCoin, feeCoin, feeNetwork).catch((err) => {
                           ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
                         }).then((txCoin) => {
-                          usdt.transactionWithFee(userTo, userFrom, s, b, addressUSDT, feeUSDT, feeNetwork).catch((err) => {
-                            ordersAndHold({ coin: b.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                          }).then((txUsdt) => {
-                            Order.updateMany({ _id: { $in: [ s._id, b._id ] } }, { $inc: { amountRemain:  (0 - amount)} }).exec((err3) => {
-                              if (err3) {
-                                ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                              } else {
-                                Order.updateMany(
-                                  {
-                                    _id: {
-                                      $in: [
-                                        mongoose.Types.ObjectId(s._id),
-                                        mongoose.Types.ObjectId(b._id)
-                                      ]
-                                    },
-                                    amountRemain: { $lte: 200000 },
+                          Order.updateMany({ _id: { $in: [ s._id, b._id ] } }, { $inc: { amountRemain:  (0 - amount)} }).exec((err3) => {
+                            if (err3) {
+                              ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
+                            } else {
+                              Order.updateMany(
+                                {
+                                  _id: {
+                                    $in: [
+                                      mongoose.Types.ObjectId(s._id),
+                                      mongoose.Types.ObjectId(b._id)
+                                    ]
                                   },
-                                  { stage: 'close' })
-                                  .exec((err4) => {
-                                    if (err4) {
-                                      ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                                    } else {
-                                      Order.updateMany(
-                                        {
-                                          _id: {
-                                            $in: [
-                                              mongoose.Types.ObjectId(s._id),
-                                              mongoose.Types.ObjectId(b._id)
-                                            ]
-                                          },
-                                          amountRemain: { $gt: 200000 },
-                                          stage: 'trading'
+                                  amountRemain: { $lte: 200000 },
+                                },
+                                { stage: 'close' })
+                                .exec((err4) => {
+                                  if (err4) {
+                                    ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
+                                  } else {
+                                    Order.updateMany(
+                                      {
+                                        _id: {
+                                          $in: [
+                                            mongoose.Types.ObjectId(s._id),
+                                            mongoose.Types.ObjectId(b._id)
+                                          ]
                                         },
-                                        { stage: 'open' })
-                                        .exec((err5) => {
-                                          if (err5) {
-                                            ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                                          } else {
-                                            orderMatching(s.coin);
-                                            const transaction = new Transaction({
-                                              from: userFrom._id,
-                                              to: userTo._id,
-                                              amount,
-                                              price: s.price,
-                                              feeCoin,
-                                              feeUsdt: feeUSDT,
-                                              coin: s.coin,
-                                              txCoin,
-                                              txUsdt,
-                                            });
-                                            User.updateMany(
-                                              {
-                                                _id: {
-                                                  $in: [
-                                                    mongoose.Types.ObjectId(userFrom._id),
-                                                    mongoose.Types.ObjectId(userTo._id)
-                                                  ]
-                                                },
+                                        amountRemain: { $gt: 200000 },
+                                        stage: 'trading'
+                                      },
+                                      { stage: 'open' })
+                                      .exec((err5) => {
+                                        if (err5) {
+                                          ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
+                                        } else {
+                                          orderMatching(s.coin);
+                                          const transaction = new Transaction({
+                                            from: userFrom._id,
+                                            to: userTo._id,
+                                            amount,
+                                            price: s.price,
+                                            feeCoin,
+                                            feeUsdt: feeUSDT,
+                                            coin: s.coin,
+                                            txCoin,
+                                          });
+                                          User.updateMany(
+                                            {
+                                              _id: {
+                                                $in: [
+                                                  mongoose.Types.ObjectId(userFrom._id),
+                                                  mongoose.Types.ObjectId(userTo._id)
+                                                ]
                                               },
-                                              { $push: { transactions: transaction._id} },
-                                              { upsert: true, new: true, setDefaultsOnInsert: true }
-                                            ).exec(() => {});
-                                            transaction.save(() => {
-                                              scanInformRequire(s.coin);
-                                              ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                                            });
-                                          }
-                                        });
-                                    }
-                                  });
-                              }
-                            });
+                                            },
+                                            { $push: { transactions: transaction._id} },
+                                            { upsert: true, new: true, setDefaultsOnInsert: true }
+                                          ).exec(() => {});
+                                          transaction.save(() => {
+                                            // scanInformRequire(s.coin);
+                                            ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
+                                          });
+                                        }
+                                      });
+                                  }
+                                });
+                            }
                           });
                         });
                       }
@@ -180,12 +176,13 @@ function makeTransactionOrderToOrder(s, b) {
   });
 }
 export function orderMatching(coin) {
+  console.log('begin');
   Order.aggregate([
     {
       $match: {
         stage: 'open',
         coin: coin,
-        amountRemain: { $gte: 100 },
+        amountRemain: { $gte: 200000 },
       },
     },
     { $sort: { 'price': -1, 'dateCreated': -1 } },
@@ -225,9 +222,11 @@ export function orderMatching(coin) {
       buy.map((b) => {
         sell.map((s) => {
           if (b.price >= s.price) {
-            if (b.userId !== s.userId) {
+            if (!running && b.userId.toString() !== s.userId.toString()) {
+              console.log('match');
               makeTransactionOrderToOrder(s, b);
               running = true;
+              return;
             }
           } else {
             return;

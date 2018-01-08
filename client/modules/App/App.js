@@ -34,7 +34,6 @@ export class App extends Component {
     this.state = { isMounted: false, isGoogle: false, user: {}, qrcode: '', token: '' };
     this.muiThemeSetting = getMuiTheme(null, { userAgent: 'all' });
   }
-
   componentDidMount() {
     this.setState({isMounted: true}); // eslint-disable-line
     this.props.dispatch(getBuyOrder(this.props.coin));
@@ -43,16 +42,6 @@ export class App extends Component {
   onHide = () => {
     this.props.dispatch(closeNotify());
   };
-
-  onGoogleAuth = (user) => {
-    QRCode.toDataURL(user.googleSecret.otpauth_url, (err, qrcode) => {
-      if (err) {
-        console.log(err)
-      } else {
-        this.setState({ isGoogle: true, user, qrcode });
-      }
-    });
-  };
   render() {
     return (
       <MuiThemeProvider muiTheme={this.muiThemeSetting}>
@@ -60,7 +49,7 @@ export class App extends Component {
           {this.state.isMounted && !window.devToolsExtension && process.env.NODE_ENV === 'development' && <DevTools />}
           <div>
             <Helmet
-              title="Diginex"
+              title="Hotcoiniex"
               titleTemplate=""
               meta={[
                 { charset: 'utf-8' },
@@ -77,7 +66,7 @@ export class App extends Component {
             <SocketController />
             <Header />
 
-            <div style={{ paddingTop: '70px' }}>
+            <div style={{ paddingTop: '50px' }}>
               {this.props.children}
             </div>
             {/*<Footer />*/}
@@ -87,7 +76,7 @@ export class App extends Component {
 
             <Modal show={this.props.isNotify} onHide={this.onHide}>
               <Modal.Header closeButton>
-                <Modal.Title>Thông báo</Modal.Title>
+                <Modal.Title>Alert</Modal.Title>
               </Modal.Header>
               <Modal.Body>
                 {this.props.message}

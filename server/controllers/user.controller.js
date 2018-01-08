@@ -15,7 +15,16 @@ function generateToken(user) {
     _id: user.id,
   };
   return jwt.sign(u, 'diginex', {
-    expiresIn: '1h'
+    expiresIn: '1h',
+  });
+}
+export function getProfile(req, res) {
+  User.findOne({ userName: req.params.userName }).exec((err, user) => {
+    if (err) {
+      res.json({ user: {} });
+    } else {
+      res.json({ user });
+    }
   });
 }
 export function createUser(req, res) {
@@ -59,25 +68,6 @@ export function createUser(req, res) {
                 }
               }, { upsert: true }).exec();
             });
-            usdt.addAddress().catch((err) => {
-              console.log('error');
-              console.log(err);
-            }).then((data) => {
-              updateProfile(user._id);
-              usdt.faucet(data.address);
-              usdt.faucet(data.address);
-              usdt.faucet(data.address);
-              usdt.faucet(data.address);
-              User.updateOne({ _id: user._id }, {
-                $push: {
-                  addresses: {
-                    coin: 'USDT',
-                    address: data.address,
-                    private: data.private,
-                  }
-                }
-              }, { upsert: true }).exec();
-            });
             eth.addAddress().catch((err) => {
               console.log('error');
               console.log(err);
@@ -110,7 +100,7 @@ export function createUser(req, res) {
             let content = '<div><p><span>Xin chào:  &nbsp; <b>';
             content += newUser.userName;
             content += '</b></span></p> <p>Đây là liên kết để bạn xác nhận tài khoản</p>';
-            content += `<a href="http://localhost:8000/user/confirm?token=${newUser._id}`;
+            content += `<a href="http://localhost:11212/user/confirm?token=${newUser._id}`;
             content += `" target="_blank">http://diginex.com/user/confirm?token=${newUser._id}`;
             content += '</a>';
             content += '<p>Liên kết chỉ có thể sử dụng 1 lần. Cảm ơn bạn đã đăng ký! </p>';
@@ -221,13 +211,32 @@ export function getBalance(req, res) {
         if (user) {
           const address = user.addresses.filter((a) => { return a.coin === sanitizeHtml(req.params.coin); });
           let api = null;
+          if (req.params.coin === 'USDT') {
+            usdt.getBalance(user._id).catch((err) => {
+              res.json({user: 'Error'});
+            }).then((balance) => {
+              usdt.getHold(user._id)
+                .catch((err2) => {
+                  res.json({user: 'Error'});
+                })
+                .then((hold) => {
+                  res.json({
+                    user: {
+                      coin: sanitizeHtml(req.params.coin),
+                      address: '',
+                      balance: balance.balance,
+                      unconfirmedBalance: 0,
+                      hold: Number(hold),
+                      history: []
+                    }
+                  });
+                });
+            });
+            return;
+          }
           switch (req.params.coin) {
             case 'BTC': {
               api = btc;
-              break;
-            }
-            case 'USDT': {
-              api = usdt;
               break;
             }
             case 'ETH': {

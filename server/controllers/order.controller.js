@@ -62,8 +62,6 @@ export function createOrder(req, res) {
                   res.json({order: 'Không thể đặt lệnh'});
                 })
                 .then((hold) => {
-                  console.log(data.final_balance + hold);
-                  console.log(reqOrder.amount);
                   if (data.final_balance >= hold + Number(sanitizeHtml(reqOrder.amount))) {
                     newOrder.save((err) => {
                       if (err) {
@@ -82,35 +80,28 @@ export function createOrder(req, res) {
               res.json({order: 'Không thể đặt lệnh'});
             }
           } else {
-            const address = user.addresses.filter((a) => {
-              return a.coin === 'USDT';
+            usdt.getBalance(user._id).catch(() => {
+              res.json({ order: 'Không thể đặt lệnh' });
+            }).then((balance) => {
+              usdt.getHold(user._id)
+                .catch(() => {
+                  res.json({order: 'Không thể đặt lệnh'});
+                })
+                .then((hold) => {
+                  if (balance.balance >= hold + (Number(sanitizeHtml(reqOrder.amount)) / unit * Number(reqOrder.price))) {
+                    newOrder.save((err) => {
+                      if (err) {
+                        res.json({order: 'Không thể đặt lệnh'});
+                      } else {
+                        startOrderMatching(sanitizeHtml(reqOrder.coin), reqOrder.userId);
+                        res.json({ order: 'success' })
+                      }
+                    });
+                  } else {
+                    res.json({ order: 'Không đủ USDT' });
+                  }
+                });
             });
-            if (address.length > 0) {
-              usdt.getAddress(address[0].address).catch(() => {
-                res.json({order: 'Không thể đặt lệnh'});
-              }).then((data) => {
-                usdt.getHold(user._id)
-                  .catch(() => {
-                    res.json({order: 'Không thể đặt lệnh'});
-                  })
-                  .then((hold) => {
-                    if (data.final_balance / 100000 >= hold + (Number(sanitizeHtml(reqOrder.amount)) / unit * Number(reqOrder.price))) {
-                      newOrder.save((err) => {
-                        if (err) {
-                          res.json({order: 'Không thể đặt lệnh'});
-                        } else {
-                          startOrderMatching(sanitizeHtml(reqOrder.coin), reqOrder.userId);
-                          res.json({ order: 'success' })
-                        }
-                      });
-                    } else {
-                      res.json({ order: 'Không đủ USDT' });
-                    }
-                  });
-              });
-            } else {
-              res.json({order: 'Không thể đặt lệnh'});
-            }
           }
         } else {
           res.json({ order: 'Không thể đặt lệnh' });
@@ -136,6 +127,7 @@ export function getOrder(req, res) {
         $group: {
           _id: "$price",
           amountRemain: { $sum: "$amountRemain"},
+          userId: { $push: {userId: "$userId", amountRemain: "$amountRemain"}},
           coin: { $first: "$coin" },
           stage: { $first: "$stage" },
           type: { $first: "$type" },
@@ -145,6 +137,7 @@ export function getOrder(req, res) {
         $project: {
           price: "$_id",
           amountRemain: "$amountRemain" ,
+          userId: "$userId" ,
           coin:  "$coin" ,
           stage:  "$amountRemain" ,
           type:  "$type" ,
@@ -156,6 +149,7 @@ export function getOrder(req, res) {
       if (err) {
         res.json({ order: [] });
       } else {
+        // res.json({ order: (req.params.type === 'buy') ? order.reverse() : order });
         res.json({ order: order });
       }
     })

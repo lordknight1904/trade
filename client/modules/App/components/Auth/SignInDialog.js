@@ -52,7 +52,6 @@ class SignInDialog extends Component{
       this.props.dispatch(getBalance(res.user.userName, 'BTC'));
       this.props.dispatch(getBalance(res.user.userName, 'USDT'));
       this.props.dispatch(getBalance(res.user.userName, 'ETH'));
-      // this.props.dispatch(getBalance(res.user.user, 'ETH'));
       this.props.dispatch(login(res.user));
       this.props.dispatch(onCloseSign());
     });
@@ -115,19 +114,19 @@ class SignInDialog extends Component{
     this.props.dispatch(googleFactor(user)).then((res) => {
       this.setState({ isGoogling: false, googleCode: '' });
       if (res.user === 'error') {
-        this.setState({ error: 'Lỗi đăng nhập.' });
+        this.setState({ error: 'Sign in error.' });
         return;
       }
       if (res.user === 'missing') {
-        this.setState({ error: 'Xin vui lòng nhập đủ dữ liệu.' });
+        this.setState({ error: 'Please provide information adequately.' });
         return;
       }
       if (res.user === 'reject') {
-        this.setState({ error: 'Mã google sai.' });
+        this.setState({ error: 'Incorrect Google security code.' });
         return;
       }
       if (res.user === 'not found') {
-        this.setState({ error: 'Không tìm thấy tài khoản này.' });
+        this.setState({ error: 'Do not found this account.' });
         return;
       }
       this.props.dispatch(login(res.user));
@@ -139,7 +138,7 @@ class SignInDialog extends Component{
     return (
       <Modal show={this.props.isSignIn}>
         <Modal.Header style={{ backgroundColor: 'rgb(10, 105, 112)' }}>
-          <Modal.Title style={{ textAlign: 'center', color: 'white', fontWeight: 'bold' }}>Đăng nhập</Modal.Title>
+          <Modal.Title style={{ textAlign: 'center', color: 'white', fontWeight: 'bold' }}>Sign In</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form horizontal>
@@ -159,7 +158,7 @@ class SignInDialog extends Component{
             </FormGroup>
 
             <FormGroup controlId="formHorizontalPassword" validationState={(this.state.passwordError !== '') ? 'error' : null}>
-              <Col sm={3} componentClass={ControlLabel}>Mật khẩu</Col>
+              <Col sm={3} componentClass={ControlLabel}>Password</Col>
               <Col sm={9}>
                 <FormControl
                   type="password"
@@ -175,7 +174,7 @@ class SignInDialog extends Component{
             {
               this.state.isGoogle ? (
                 <FormGroup controlId="formHorizontalPassword" validationState={(this.state.passwordError !== '') ? 'error' : null}>
-                  <Col sm={3} componentClass={ControlLabel}>Mã Google</Col>
+                  <Col sm={3} componentClass={ControlLabel}>Google Security Code</Col>
                   <Col sm={9}>
                     <InputGroup>
                       <FormControl
@@ -185,7 +184,7 @@ class SignInDialog extends Component{
                         onKeyDown={this.onGoogleKeyDown}
                       />
                       <InputGroup.Button>
-                        <Button onClick={this.onGoogleFactor} disabled={this.state.isGoogling}>Xác minh</Button>
+                        <Button onClick={this.onGoogleFactor} disabled={this.state.isGoogling}>Verify</Button>
                       </InputGroup.Button>
                     </InputGroup>
                   </Col>
@@ -204,8 +203,8 @@ class SignInDialog extends Component{
           </Form>
         </Modal.Body>
         <Modal.Footer style={{ backgroundColor: 'rgb(10, 105, 112)', textAlign: 'center' }}>
-          <Button onClick={this.onSigningIn} bsStyle="success" disabled={this.state.isLoggingIn || this.state.isGoogle}>Đăng nhập</Button>
-          <Button onClick={this.onHide} bsStyle="danger" disabled={this.state.isLoggingIn || this.state.isGoogle}>Thoát</Button>
+          <Button onClick={this.onSigningIn} bsStyle="success" disabled={this.state.isLoggingIn || this.state.isGoogle}>Submit</Button>
+          <Button onClick={this.onHide} bsStyle="danger" disabled={this.state.isLoggingIn || this.state.isGoogle}>Exit</Button>
         </Modal.Footer>
       </Modal>
     );

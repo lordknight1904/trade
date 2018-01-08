@@ -29,12 +29,6 @@ input:-moz-placeholder {
 
 body {
 	background: #FFF;
-	font-family: 'arial', sans-serif;
+  font-family: 'Roboto', sans-serif;
 	font-size: 10pt;
-}
-.profileTableDisplay > input {
-  width: auto;
-}
-.profileTableDisplay > div {
-  width: 20%;
 }

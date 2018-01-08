@@ -7,6 +7,7 @@ router.route('/user/google/activate').post(UserController.confirmGoogleAuth);
 router.route('/user/google/authorize').post(UserController.googleFactor);
 router.route('/user/google/cancel').post(UserController.cancelGoogleFactor);
 router.route('/user/profile').post(UserController.updateUserProfile);
+router.route('/user/profile/:userName').get(UserController.getProfile);
 router.route('/user/inform').post(UserController.addInform);
 router.route('/user/inform').delete(UserController.deleteInform);
 router.route('/user/confirm').get(UserController.verifyUser);

@@ -2,16 +2,16 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
-import { setSocket, getHold, getMyOrders, getBalance, fetchTransaction } from '../AppActions';
+import { setSocket, getHold, getMyOrders, getBalance, fetchTransaction, fetchUserProfile } from '../AppActions';
 import { getId, getUserName, getSocket, getCoin } from '../AppReducer';
 import { getSellOrder, getBuyOrder, fetchRate } from '../../Exchange/ExchangeActions';
 import ChatSocket from '../../../util/ChatSocket';
 
 export class SocketController extends Component {
   componentDidMount() {
+    // this.timer = setInterval(this.tick, 60000);
     Promise.resolve(this.props.dispatch(setSocket(new ChatSocket()))).then(() => {
       this.isDidMount = true;
-      console.log(this.props.socketIO);
       this.props.socketIO.listening((message) => {
         console.log(message);
         switch (message.code) {
@@ -25,8 +25,8 @@ export class SocketController extends Component {
           }
           case 'ordersAndHold': {
             this.props.dispatch(getBalance(this.props.userName, 'BTC'));
-            this.props.dispatch(getBalance(this.props.userName, 'ETH'));
             this.props.dispatch(getBalance(this.props.userName, 'USDT'));
+            this.props.dispatch(getBalance(this.props.userName, 'ETH'));
             this.props.dispatch(getHold(this.props.userName, message.coin));
             this.props.dispatch(fetchRate(message.coin));
             if (this.props.coin === message.coin) {
@@ -59,11 +59,21 @@ export class SocketController extends Component {
     if (this.isDidMount === false) {
       return;
     }
-    let userId = (props.id === '') ? 'guest' : props.id;
+    const userId = (props.id === '') ? 'guest' : props.id;
     if (userId !== this.previousUserLoginID) {
       this.connectToServer(props, userId);
     }
   }
+  componentWillUnmount = () => {
+    clearInterval(this.timer);
+  };
+  tick = () => {
+    this.props.dispatch(getBalance(this.props.userName, 'BTC'));
+    this.props.dispatch(getBalance(this.props.userName, 'ETH'));
+    this.props.dispatch(fetchUserProfile(this.props.userName));
+    this.props.dispatch(getHold(this.props.userName, this.props.coin));
+    this.props.dispatch(fetchRate(this.props.coin));
+  };
 
   connectToServer(props, userId) {
     props.socketIO.doConnect({ id: userId });

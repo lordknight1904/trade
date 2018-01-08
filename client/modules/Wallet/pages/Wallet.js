@@ -32,11 +32,11 @@ class Wallet extends Component{
   };
   sendCoin = () => {
     if (this.state.address.trim() === '') {
-      this.props.dispatch(setNotify('Địa chỉ nhập sai.'));
+      this.props.dispatch(setNotify('Wrong address.'));
       return;
     }
     if (isNaN(this.state.amount.trim())) {
-      this.props.dispatch(setNotify('Số lượng sai'));
+      this.props.dispatch(setNotify('Invalid quantity.'));
       return;
     }
     const send = {
@@ -48,7 +48,11 @@ class Wallet extends Component{
     this.setState({ isSending: true });
     this.props.dispatch(directSend(send)).then((res) => {
       this.setState({ isSending: false });
-      this.props.dispatch(setNotify(res.order));
+      if (res.order === 'success') {
+        this.props.dispatch(setNotify('Coin transfered.'));
+      } else {
+        this.props.dispatch(setNotify(res.order));
+      }
     });
   };
   onAddress = (event) => { this.setState({ address: event.target.value }); };
@@ -61,10 +65,10 @@ class Wallet extends Component{
         <thead>
           <tr>
             <th>Coin</th>
-            <th>Số dư</th>
-            <th>Chưa xác thực</th>
-            <th>Tạm khóa</th>
-            <th>Thao tác</th>
+            <th>Confirmed</th>
+            <th>Unconfirmed</th>
+            <th>Holding</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -72,12 +76,12 @@ class Wallet extends Component{
           (this.state.type === 'address') ? (
             <tr>
               <th colSpan="4">
-                <p>{`Địa chỉ ví ${this.state.coin.name}:`}</p><br/>
+                <p>{`Address ${this.state.coin.name}:`}</p><br/>
                 <p>{wallet[this.state.coin.name].address.trim()}</p><br/>
-                <p>{`Chuyển ${this.state.coin.name} đến địa chỉ trên`}</p><br/>
+                <p>{`Transfer ${this.state.coin.name} to the above address`}</p><br/>
               </th>
               <th>
-                <p className={styles.pHover} style={{ float: 'left' }} onClick={this.onCancel}>Hủy</p>
+                <p className={styles.pHover} style={{ float: 'left' }} onClick={this.onCancel}>Cancel</p>
               </th>
             </tr>
           ) : ''
@@ -87,33 +91,43 @@ class Wallet extends Component{
             <tr>
               <th colSpan="4" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
                 <FormGroup style={{ marginBottom: '5px' }} >
-                  <FormControl type="text" onChange={this.onAddress} placeholder={`Đỉa chỉ ví ${this.state.coin.name} nhận`}style={{ marginBottom: '5px' }} />
-                  <FormControl type="text" onChange={this.onAmount} placeholder="Số lượng" />
+                  <FormControl type="text" onChange={this.onAddress} placeholder={`Receive address ${this.state.coin.name}`}style={{ marginBottom: '5px' }} />
+                  <FormControl type="text" onChange={this.onAmount} placeholder="Amount" />
                 </FormGroup>
-                <p style={{ float: 'left' }}>Phí chuyển</p>
+                <p style={{ float: 'left' }}>Fee</p>
                 <p style={{ float: 'right'}}>{}</p>
                 <br/>
-                <Button style={{ float: 'right' }} bsStyle="primary" bsSize="xsmall" disabled={this.state.isSending} onClick={this.sendCoin}>Gửi</Button>
+                <Button style={{ float: 'right' }} bsStyle="primary" bsSize="xsmall" disabled={this.state.isSending} onClick={this.sendCoin}>Submit</Button>
               </th>
               <th>
-                <p className={styles.pHover} style={{ float: 'left' }}>Hủy</p>
+                <p className={styles.pHover} style={{ float: 'left' }}>Cancel</p>
               </th>
             </tr>
           ) : ''
         }
         {
-          this.props.coinList.map((cl, index) => (
-            <tr key={index}>
-              <th>{cl.name}</th>
-              <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].balance / cl.unit).format('0,0.[000000]') : '~'}</th>
-              <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].unconfirmedBalance / cl.unit).format('0,0.[000000]') : '~'}</th>
-              <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].hold / cl.unit).format('0,0.[000000]') : '~'}</th>
-              <th style={{ fontWeight: 'normal' }}>
-                <p className={styles.pHover} style={{ float: 'left' }} onClick={() => this.handleAction('address', cl)}>Nạp Coin</p>
-                <p className={styles.pHover} style={{ float: 'right' }} onClick={() => this.handleAction('send', cl)}>Chuyển Coin</p>
-              </th>
-            </tr>
-          ))
+          this.props.coinList.map((cl, index) => {
+            return (
+              <tr key={index}>
+                <th>{cl.name}</th>
+                <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].balance / cl.unit).format('0,0.[000000]') : '~'}</th>
+                <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].unconfirmedBalance / cl.unit).format('0,0.[000000]') : '~'}</th>
+                <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].hold / cl.unit).format('0,0.[000000]') : '~'}</th>
+                <th style={{ fontWeight: 'normal' }}>
+                  {
+                    (cl.name !== 'USDT') ? (
+                      <p className={styles.pHover} style={{ float: 'left' }} onClick={() => this.handleAction('address', cl)}>Deposit</p>
+                    ) : ''
+                  }
+                  {
+                    (cl.name !== 'USDT') ? (
+                        <p className={styles.pHover} style={{ float: 'right' }} onClick={() => this.handleAction('send', cl)}>Withdraw</p>
+                    ) : ''
+                  }
+                </th>
+              </tr>
+            )
+          })
         }
         </tbody>
       </Table>

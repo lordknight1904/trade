@@ -49,6 +49,12 @@ const initialState = {
 
 const AppReducer = (state = initialState, action) => {
   switch (action.type) {
+    case ACTIONS.UPDATE_USER_PROFILE:
+      return {
+        ...state,
+        isSubmitting: action.user.isSubmitting,
+        approved: action.user.approved,
+      };
     case ACTIONS.SET_HISTORY_PAGE:
       return { ...state, historyPage: action.page };
     case ACTIONS.SET_HISTORY_MAX_PAGE:

@@ -4,63 +4,40 @@ import PropTypes from 'prop-types';
 import { Row, Col } from 'react-bootstrap';
 import { onSignIn, onSignUp, logout } from '../../App/AppActions';
 import { getId } from '../../App/AppReducer';
-import Rate from '../components/Rate/Rate';
 import OrderPlacer from '../components/OrderPlacer/OrderPlacer';
-import BuyOrderList from '../components/BuyOrderList/BuyOrderList';
-import SellOrderList from '../components/SellOrderList/SellOrderList';
 import OrderList from '../components/OrderList/OrderList';
 import History from '../components/History/History';
 import appStyles from '../../App/App.css';
+import Graph from '../components/Graph/Graph';
+import OpenOrders from '../components/OpenOrders/OpenOrders';
 
 class Exchange extends Component {
   constructor(props){
     super(props);
     this.state = {
-      buyOrderListSelected: {},
-      sellOrderListSelected: {},
+      selectedOrder: {},
     };
   }
-  orderTableClick = (order) => {
-    if (order.type === 'sell') {
-      this.setState({ buyOrderListSelected: order });
-    }
-    if (order.type === 'buy') {
-      this.setState({ sellOrderListSelected: order });
-    }
+  onOrderClick = (order) => {
+    this.setState({ selectedOrder: order });
   };
   render(){
     return (
-      <div className={appStyles.container} style={{ marginTop: '-50px' }} >
-        <Rate />
-        <Row>
-          <Col md={6}>
-            <OrderPlacer type='Mua' orderListSelected={this.state.buyOrderListSelected} />
-          </Col>
-          <Col md={6}>
-            <OrderPlacer type='Bán' orderListSelected={this.state.sellOrderListSelected} />
-          </Col>
-        </Row>
-
-        <Row>
-          <Col md={6}>
-            <SellOrderList orderTableClick={this.orderTableClick} />
-          </Col>
-          <Col md={6}>
-            <BuyOrderList orderTableClick={this.orderTableClick} />
-          </Col>
-        </Row>
-
-        {
-          (this.props.id !== '') ? (
-            <Row>
-              <OrderList />
-            </Row>
-          ) : ''
-        }
-
-        <Row>
-          <History />
-        </Row>
+      <div style={{ backgroundColor: '##3a444d' }}>
+        <Col md={2}>
+          <OrderPlacer selectedOrder={this.state.selectedOrder}/>
+        </Col>
+        <Col md={3}>
+          <OrderList onOrderClick={this.onOrderClick} />
+        </Col>
+        <Col md={7}>
+          <div className="row">
+            <Graph/>
+          </div>
+          <div className="row">
+            <OpenOrders />
+          </div>
+        </Col>
       </div>
     );
   }

@@ -10,7 +10,6 @@ const transactionSchema = new Schema({
   feeCoin: { type: 'number', require: true },
   feeUsdt: { type: 'number', require: true },
   txCoin: { type: 'String', require: true },
-  txUsdt: { type: 'String', require: true },
   dateCreated: { type: Date, default: Date.now },
 });
 

@@ -24,7 +24,14 @@ export const ACTIONS = {
   REFETCH_USER_PROFILE: 'REFETCH_USER_PROFILE',
   SET_HISTORY_PAGE: 'SET_HISTORY_PAGE',
   SET_HISTORY_MAX_PAGE: 'SET_HISTORY_MAX_PAGE',
+  UPDATE_USER_PROFILE: 'UPDATE_USER_PROFILE',
 };
+export function updateUserProfile(user) {
+  return {
+    type: ACTIONS.UPDATE_USER_PROFILE,
+    user,
+  };
+}
 export function setHistoryMaxPage(page) {
   return {
     type: ACTIONS.SET_HISTORY_MAX_PAGE,
@@ -157,7 +164,6 @@ export function updateHold(wallet) {
 export function getHold(userName, coin) {
   return (dispatch) => {
     return callApi(`user/hold/${userName}/${coin}`, 'get', '' ).then(res => {
-      console.log(res);
       dispatch(updateHold(res.user));
     });
   };
@@ -263,6 +269,13 @@ export function deleteInform(inform) {
   return () => {
     return callApi('user/inform', 'delete', '', {inform}).then(res => {
       return res;
+    });
+  };
+}
+export function fetchUserProfile(userName) {
+  return (dispatch) => {
+    return callApi(`user/profile/${userName}`, 'get', '').then(res => {
+      dispatch(updateUserProfile(res.user));
     });
   };
 }

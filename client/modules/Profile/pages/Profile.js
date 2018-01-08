@@ -70,24 +70,24 @@ class Profile extends Component{
     };
     this.props.dispatch(cancelGoogle(user)).then((res) => {
       if (res.user === 'missing') {
-        this.props.dispatch(setNotify('Vui lòng nhập đầy đủ th6ong tin.'));
+        this.props.dispatch(setNotify('Please provide information adequately.'));
         return;
       }
       if (res.user === 'error') {
-        this.props.dispatch(setNotify('Lỗi hủy bảo mật 2 yếu tố.'));
+        this.props.dispatch(setNotify('Two factors error.'));
         return;
       }
       if (res.user === 'reject') {
-        this.props.dispatch(setNotify('Mã google kh6ong đúng.'));
+        this.props.dispatch(setNotify('Google Authenticator code incorrect.'));
         return;
       }
       if (res.user === 'not found') {
-        this.props.dispatch(setNotify('Mã google kh6ong đúng.'));
+        this.props.dispatch(setNotify('Google Authenticator code incorrect.'));
         return;
       }
       if (res.user === 'success') {
         this.setState({isCancelGoogle: false, token: ''});
-        this.props.dispatch(setNotify('Hủy bảo mật 2 cấp thành công'));
+        this.props.dispatch(setNotify('Cancel two factors security success.'));
         this.props.dispatch(logout());
       }
     });
@@ -103,7 +103,7 @@ class Profile extends Component{
   };
   onSubmitGoogle = () => {
     if (this.state.token === '') {
-      this.props.dispatch(setNotify('Vui lòng nhập mã QR'));
+      this.props.dispatch(setNotify('Please inpu QR code.'));
       return;
     }
     const user = {
@@ -112,7 +112,7 @@ class Profile extends Component{
     };
     this.props.dispatch(googleAuth(user)).then((res) => {
       if (res.user === 'success') {
-        this.props.dispatch(setNotify('Kích hoạt mật mã 2 cấp thành công'));
+        this.props.dispatch(setNotify('Two factors security activated.'));
         this.setState({ isGoogle: false, token: '' });
       } else {
         this.props.dispatch(setNotify(res.user));
@@ -129,28 +129,28 @@ class Profile extends Component{
     };
     this.props.dispatch(updateProfile(profile)).then((res) => {
       if (res.profile === 'error') {
-        this.props.dispatch(setNotify('Lỗi thay đổi thông tin h6ò sơ.'));
+        this.props.dispatch(setNotify('Profile modification failed.'));
         return;
       }
       if (res.profile === 'missing') {
-        this.props.dispatch(setNotify('Vui lòng nhập đầy đủ thông tin.'));
+        this.props.dispatch(setNotify('Please provide information adequately.'));
         return;
       }
       if (res.profile === 'success') {
         this.props.dispatch(setIsSubmitting());
-        this.props.dispatch(setNotify('Hồ sơ của bạn đang được duyệt.'));
+        this.props.dispatch(setNotify('Your profile is being processed.'));
       }
     });
   };
 
   addInform = () => {
     if (this.state.phone === '') {
-      this.props.dispatch(setNotify('Vui lòng gửi thông tin bảo mật trước.'));
-      return
+      this.props.dispatch(setNotify('Please provide security information.'));
+      return;
     }
     if (!this.props.approved) {
-      this.props.dispatch(setNotify('Vui lòng chờ thông tin bảo mật được duyệt.'));
-      return
+      this.props.dispatch(setNotify('Please wait while security profile is being processed.'));
+      return;
     }
     this.setState({ inform: !this.state.inform });
   };
@@ -161,16 +161,16 @@ class Profile extends Component{
   handleMax = (event) => { this.setState({ max: event.target.value }); };
   onAddInform = () => {
     if (this.state.coin === 'Chọn coin') {
-      this.props.dispatch(setNotify('Vui lòng chọn giá coin cần được thông báo'));
+      this.props.dispatch(setNotify('Please select coin for price notification.'));
       return;
     }
-    if (this.state.min >= 10 || this.state.max <= 10) {
-      if (this.state.min >= 10 && this.state.min !== '') {
-        this.props.dispatch(setNotify('Giá báo phải thấp hơn giá hiện tại'));
+    if (this.state.min >= Number(this.props.rate[this.state.coin]) || this.state.max <= Number(this.props.rate[this.state.coin])) {
+      if (this.state.min >= Number(this.props.rate[this.state.coin]) && this.state.min !== '') {
+        this.props.dispatch(setNotify('Notify price must be lower than current price.'));
         return;
       }
-      if (this.state.max <= 10 && this.state.max !== '') {
-        this.props.dispatch(setNotify('Giá báo phải lớn hơn giá hiện tại'));
+      if (this.state.max <= Number(this.props.rate[this.state.coin]) && this.state.max !== '') {
+        this.props.dispatch(setNotify('Notify price must be greater than current price.'));
         return;
       }
     }
@@ -183,35 +183,35 @@ class Profile extends Component{
     this.props.dispatch(addInform(inform)).then((res) => {
       if (res.inform === 'success') {
         this.setState({ min: '', max: '', coin: 'Chọn coin' });
-        this.props.dispatch(setNotify('Đặt báo giá thành công'));
+        this.props.dispatch(setNotify('Price notification placed.'));
         this.props.dispatch(refetchUserProfile(res.user));
       } else {
-        this.props.dispatch(setNotify('Đặt báo giá không thành công'));
+        this.props.dispatch(setNotify('Price notification failed.'));
       }
     })
   };
   onDeleteInform = (informId) => {
     const inform = {
       id: this.props.id,
-      informId
+      informId,
     };
     this.props.dispatch(deleteInform(inform)).then((res) => {
       if (res.inform === 'success') {
         this.setState({ min: 0, max: 0, coin: 'Chọn coin' });
-        this.props.dispatch(setNotify('Hủy báo giá thành công'));
+        this.props.dispatch(setNotify('Price notification canceled.'));
         this.props.dispatch(refetchUserProfile(res.user));
       } else {
-        this.props.dispatch(setNotify('Hủy báo giá không thành công'));
+        this.props.dispatch(setNotify('Price notification failed.'));
       }
-    })
+    });
   };
-  render(){
+  render() {
     return (
       <div className={appStyles.container} style={{ marginTop: '-50px' }}>
         <Table striped bordered condensed hover>
           <tbody>
             <tr>
-              <td style={{ width: '20%' }}>Họ tên</td>
+              <td style={{ width: '20%' }}>Full name</td>
               {
                 this.props.approved ? (
                     <td style={{ width: '80%' }}>{this.props.realName}</td>
@@ -221,7 +221,7 @@ class Profile extends Component{
                         <FormControl
                           disabled={this.props.isSubmitting || this.props.approved}
                           type="text"
-                          placeholder="Họ tên"
+                          placeholder="Full name"
                           value={this.state.realName}
                           onChange={this.handleRealName}
                         />
@@ -241,7 +241,7 @@ class Profile extends Component{
                         <FormControl
                           disabled={this.props.isSubmitting || this.props.approved}
                           type="text"
-                          placeholder="Số điện thoại"
+                          placeholder="Phoen number"
                           value={this.state.phone}
                           onChange={this.handlePhone}
                         />
@@ -252,35 +252,35 @@ class Profile extends Component{
             </tr>
             <tr>
               <td colSpan="2">
-                <Button bsStyle="primary" bsSize="small" disabled={this.props.approved || this.props.isSubmitting} onClick={this.onSubmitProfile}>Gửi</Button>
+                <Button bsStyle="primary" bsSize="small" disabled={this.props.approved || this.props.isSubmitting} onClick={this.onSubmitProfile}>Submit</Button>
               </td>
             </tr>
             <tr>
-              <td>Bảo mật 2 cấp</td>
+              <td>Two factors security</td>
               <td>
               {
                 this.props.googleAuthentication ? (
-                    <Button bsStyle="danger" bsSize="xsmall"  onClick={this.onCancelGoogle}>Hủy bảo mật 2 cấp</Button>
+                    <Button bsStyle="danger" bsSize="xsmall"  onClick={this.onCancelGoogle}>Cancel two factors security</Button>
                   ) : (
-                    <Button bsStyle="warning" bsSize="xsmall"  onClick={this.onActivateGoogle}>Kích hoạt bảo mật 2 cấp ngay</Button>
+                    <Button bsStyle="warning" bsSize="xsmall"  onClick={this.onActivateGoogle}>Activate two factors security</Button>
                   )
               }
               </td>
             </tr>
 
             <tr>
-              <td>Thông báo giá</td>
+              <td>Price notification</td>
               <td>
-                <Button bsStyle="success" bsSize="xsmall"  onClick={this.addInform}>{this.state.inform ? '-' : '+'}</Button>
+                <Button bsStyle="success" bsSize="xsmall" onClick={this.addInform}>{this.state.inform ? '-' : '+'}</Button>
               </td>
             </tr>
             {
               this.state.inform ? (
                   <tr>
                     <td />
-                    <td style={{ display: 'table' }} className={styles.profileTableDisplay}>
+                    <td style={{ display: 'table' }} className={appStyles.profileTableDisplay}>
                       <DropdownButton title={this.state.coin} id="coin-seletec-dropdown" onSelect={this.onCoinSelect} style={{ display: 'table-cell', width: '100%' }}>
-                        <MenuItem eventKey='Chọn coin'>Chọn coin</MenuItem>
+                        <MenuItem eventKey='Chọn coin'>Coin</MenuItem>
                         {
                           this.props.coinList.map((coin, index) => (
                             <MenuItem key={`${index}CoinSelect`} eventKey={coin.name}>{coin.name}</MenuItem>
@@ -290,24 +290,24 @@ class Profile extends Component{
                       <FormControl
                         type="text"
                         value={this.state.min}
-                        placeholder="khi giá nhỏ hơn"
+                        placeholder="lower"
                         onChange={this.handleMin}
                         style={{ display: 'table-cell', width: '20%' }}
                       />
                       <FormControl
                         type="text"
-                        value={`Giá hiện tại ${this.props.rate[this.state.coin] ? numeral(this.props.rate[this.state.coin].price).format('0,0') : '~'}`}
+                        value={`Current price ${this.props.rate[this.state.coin] ? numeral(this.props.rate[this.state.coin].price).format('0,0') : '~'}`}
                         style={{ display: 'table-cell', width: '20%' }}
                         disabled
                       />
                       <FormControl
                         type="text"
                         value={this.state.max}
-                        placeholder="khi giá lớn hơn"
+                        placeholder="greater"
                         style={{ display: 'table-cell', width: '20%' }}
                         onChange={this.handleMax}
                       />
-                      <Button bsStyle="success" onClick={this.onAddInform} style={{ width: '20%' }}>Thêm</Button>
+                      <Button bsStyle="success" onClick={this.onAddInform} style={{ width: '20%' }}>Add</Button>
                     </td>
                   </tr>
                 ) : ''
@@ -315,16 +315,16 @@ class Profile extends Component{
             {
               (this.props.requireInform.length > 0) ? (
                   <tr>
-                    <td>Các thông báo đã đặt</td>
+                    <td>Price notifications</td>
                     <td>
                       {
                         this.props.requireInform.map((inform, index) => (
                           <div key={`${index}Inform`} style={{ height: '35px', verticalAlign: 'middle', lineHeight: '35px' }}>
                             <div style={{ display: 'inline' }}>
-                              {`Bạn đã đặt báo giá khi giá ${inform.coin} ${(inform.max === 0) ? `nhỏ hơn ${inform.min}` : `lớn hơn ${inform.max}`}`}
+                              {`Notify when ${inform.coin} ${(inform.max === 0) ? `lower than ${inform.min}` : `greater than ${inform.max}`}`}
                             </div>
                             <div style={{ display: 'inline', paddingTop: '5px', float: 'right' }}>
-                            <Button bsSize="xs" bsStyle="danger" onClick={() => this.onDeleteInform(inform._id)} style={{ width: '100%' }}>Xóa</Button>
+                            <Button bsSize="xs" bsStyle="danger" onClick={() => this.onDeleteInform(inform._id)} style={{ width: '100%' }}>Delete</Button>
                             </div>
                           </div>
                         ))
@@ -338,32 +338,32 @@ class Profile extends Component{
 
         <Modal show={this.state.isGoogle} bsSize="sm" onHide={this.onHide}>
           <Modal.Header closeButton>
-            <Modal.Title>Mã quét QR</Modal.Title>
+            <Modal.Title>QR code</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <img style={{ width: '100%' }} src={this.state.qrcode} />
             <FormGroup>
-              <FormControl type="text" placeholder="Nhập mã bảo mật" value={this.state.token} onChange={this.handleToken} />
+              <FormControl type="text" placeholder="Security Code" value={this.state.token} onChange={this.handleToken} />
             </FormGroup>
           </Modal.Body>
           <Modal.Footer>
-            <Button bsStyle="danger" bsSize="small" onClick={this.onHide}>Đóng</Button>
-            <Button bsStyle="primary" bsSize="small" onClick={this.onSubmitGoogle}>Gửi</Button>
+            <Button bsStyle="danger" bsSize="small" onClick={this.onHide}>Close</Button>
+            <Button bsStyle="primary" bsSize="small" onClick={this.onSubmitGoogle}>Submit</Button>
           </Modal.Footer>
         </Modal>
 
         <Modal show={this.state.isCancelGoogle} bsSize="sm" onHide={this.onHideCancelGoogle}>
           <Modal.Header closeButton>
-            <Modal.Title>Mã quét QR</Modal.Title>
+            <Modal.Title>QR code</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <FormGroup>
-              <FormControl type="text" placeholder="Nhập mã bảo mật" value={this.state.token} onChange={this.handleToken} />
+              <FormControl type="text" placeholder="Security Code" value={this.state.token} onChange={this.handleToken} />
             </FormGroup>
           </Modal.Body>
           <Modal.Footer>
-            <Button bsStyle="danger" bsSize="small" onClick={this.onHideCancelGoogle}>Đóng</Button>
-            <Button bsStyle="primary" bsSize="small" onClick={this.onCancelGoogleAuth}>Gửi</Button>
+            <Button bsStyle="danger" bsSize="small" onClick={this.onHideCancelGoogle}>Close</Button>
+            <Button bsStyle="primary" bsSize="small" onClick={this.onCancelGoogleAuth}>Submit</Button>
           </Modal.Footer>
         </Modal>
       </div>

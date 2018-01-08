@@ -80,6 +80,10 @@ const renderFullPage = (html, initialState) => {
         ${head.script.toString()}
 
         ${process.env.NODE_ENV === 'production' ? `<link rel='stylesheet' href='${assetsManifest['/app.css']}' />` : ''}
+        <script type="text/javascript" src="https://unpkg.com/fusioncharts/fusioncharts.js"></script>
+        <script type="text/javascript" src="https://unpkg.com/react-fusioncharts/dist/react-fusioncharts.js"></script>
+        <script src="./fusion.js"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
