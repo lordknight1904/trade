@@ -8,6 +8,7 @@ import bitcoin from 'bitcoinjs-lib';
 import buffer from 'buffer';
 import Order from '../models/order';
 import Transaction from '../models/transaction';
+import Deposit from '../models/deposit';
 import mongoose from 'mongoose';
 import numeral from 'numeral';
 
@@ -43,7 +44,6 @@ export function getHold(id) {
           }
           hold += o.amountRemain / unit * o.price;
         });
-        console.log(hold);
         resolve(hold);
       }
     });
@@ -51,30 +51,39 @@ export function getHold(id) {
 }
 export function getBalance(id) {
   return new Promise((resolve, reject) => {
-    Transaction.find({ $or: [{ from: mongoose.Types.ObjectId(id) }, { to: mongoose.Types.ObjectId(id)}] }).exec((err, transactions) => {
+    Deposit.find({ userId: mongoose.Types.ObjectId(id) }).exec((err, deposits) => {
       if (err) {
         resolve({ balance: 0 });
       } else {
         let balance = 0;
         let unit = 0;
-        transactions.map((t) => {
-          switch (t.coin) {
-            case 'BTC': {
-              unit = 100000000;
-              break;
-            }
-            case 'ETH': {
-              unit = 1000000000000000000;
-              break;
-            }
-          }
-          if (id === t.from) {
-            balance -= numeral(t.amount).value() / unit * numeral(t.price).value();
+        deposits.map((d) => {
+          balance += numeral(d.value).value();
+        });
+        Transaction.find({ $or: [{ from: id }, { to: id }] }).exec((err, transactions) => {
+          if (err) {
+            resolve({ balance: 0 });
           } else {
-            balance += numeral(t.amount).value() / unit * numeral(t.price).value();
+            transactions.map((t) => {
+              switch (t.coin) {
+                case 'BTC': {
+                  unit = 100000000;
+                  break;
+                }
+                case 'ETH': {
+                  unit = 1000000000000000000;
+                  break;
+                }
+              }
+              if (id.toString() === t.from.toString()) {
+                balance += numeral(t.amount).value() / unit * numeral(t.price).value() - numeral(t.feeUsdt).value();
+              } else {
+                balance -= numeral(t.amount).value() / unit * numeral(t.price).value() - numeral(t.feeUsdt).value();
+              }
+            });
+            resolve({ balance });
           }
         });
-        resolve({ balance });
       }
     });
   });
@@ -125,14 +134,11 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
           data.pubkeys.push(keys.getPublicKeyBuffer().toString('hex'));
           return keys.sign(new buffer.Buffer(tosign, 'hex')).toDER().toString('hex');
         });
-        console.log(data);
         usdt.sendTX(data, function (err2, ret) {
           if (err2) {
             reject('signError');
           } else {
-            // console.log(ret);
             if (ret && !ret.hasOwnProperty('error')) {
-              // console.log(ret);
               const webhook2 = {
                 'event': 'tx-confirmation',
                 'address': addressTo.address,

@@ -3,8 +3,9 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Navbar, Nav, NavItem, MenuItem, NavDropdown, Col, Image, Glyphicon, Badge } from 'react-bootstrap'
 import styles from './Header.css';
-import { onSignIn, onSignUp, logout } from '../../AppActions';
+import { onSignIn, onSignUp, logout, changeCoin, addOpen, getMyOrders } from '../../AppActions';
 import { getSignIn, getSignUp, getUserName, getId, getCoin } from '../../AppReducer';
+import { getBuyOrder, getSellOrder, addBuyOrders, addSellOrders } from '../../../Exchange/ExchangeActions';
 
 class Header extends Component{
   constructor(props){
@@ -62,14 +63,31 @@ class Header extends Component{
       }
       default: break;
     }
+    this.timer1 = {};
+    this.timer2 = {};
   };
   onClick = () => {
     this.context.router.push('/');
   };
   handleCoin = (eventKey) => {
-    console.log(eventKey);
-    this.props.dispatch(setCoin(eventKey));
+    this.props.dispatch(changeCoin(eventKey));
+    this.props.dispatch(addBuyOrders([]));
+    this.props.dispatch(addSellOrders([]));
+    if (this.props.id !== '') {
+      this.props.dispatch(addOpen([]));
+      this.timer1 = setTimeout(() => {
+        this.props.dispatch(getMyOrders(this.props.userName, eventKey));
+      }, 1000);
+    }
+    this.timer2 = setTimeout(() => {
+      this.props.dispatch(getBuyOrder(eventKey));
+      this.props.dispatch(getSellOrder(eventKey));
+    }, 1000);
   };
+  componentWillUnmount() {
+    clearTimeout(this.timer1);
+    clearTimeout(this.timer2);
+  }
   render() {
     return (
       <Navbar inverse collapseOnSelect className={styles.headerstyle}>
@@ -83,8 +101,12 @@ class Header extends Component{
           <Nav className={styles.noneBlue} onSelect={this.handleCoin}>
             <NavDropdown title={this.props.coin} id="basic-nav-dropdown">
               <MenuItem eventKey="BTC"><Glyphicon glyph="glyphicon glyphicon-btc" />   BTC</MenuItem>
+              {/*<MenuItem eventKey="DASH"><Glyphicon glyph="cf-dash" />   DASH</MenuItem>*/}
               <MenuItem eventKey="ETH"><Glyphicon glyph="glyphicon glyphicon-credit-card" />   ETH</MenuItem>
             </NavDropdown>
+          </Nav>
+          <Nav pullRight>
+            <NavItem>Hotcoin Market</NavItem>
           </Nav>
           {
             (this.props.userName === '') ? (

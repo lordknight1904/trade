@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
-import { setSocket, getHold, getMyOrders, getBalance, fetchTransaction, fetchUserProfile } from '../AppActions';
+import { setSocket, getHold, getMyOrders, getBalance, fetchTransaction, fetchUserProfile, updateTransaction } from '../AppActions';
 import { getId, getUserName, getSocket, getCoin } from '../AppReducer';
 import { getSellOrder, getBuyOrder, fetchRate } from '../../Exchange/ExchangeActions';
 import ChatSocket from '../../../util/ChatSocket';
@@ -27,6 +27,7 @@ export class SocketController extends Component {
             this.props.dispatch(getBalance(this.props.userName, 'BTC'));
             this.props.dispatch(getBalance(this.props.userName, 'USDT'));
             this.props.dispatch(getBalance(this.props.userName, 'ETH'));
+            this.props.dispatch(getBalance(this.props.userName, 'DASH'));
             this.props.dispatch(getHold(this.props.userName, message.coin));
             this.props.dispatch(fetchRate(message.coin));
             if (this.props.coin === message.coin) {
@@ -45,6 +46,14 @@ export class SocketController extends Component {
               this.props.dispatch(getHold(this.props.userName, message.coin));
               this.props.dispatch(getMyOrders(this.props.userName, message.coin));
               this.props.dispatch(fetchTransaction(this.props.userName, message.coin, 0));
+            }
+            break;
+          }
+          case 'updateCoinBalance': {
+            if (this.props.coin === message.coin) {
+              console.log(message);
+              this.props.dispatch(updateTransaction({ _id: message.tx, confirmations: message.confirmations }));
+              this.props.dispatch(getBalance(this.props.userName, message.coin));
             }
             break;
           }

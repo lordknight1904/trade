@@ -31,6 +31,7 @@
   "author": "Prashant Abhishek <prashant.abhishek7g@gmail.com>, Mayank Chandola <imayankchd@gmail.com>, Sandeep Panda <sandeep@hashnode.com>, Syed Fazle Rahman <fazle@hashnode.com>, Alkshendra Maurya <alkshendra@hashnode.com>",
   "license": "MIT",
   "dependencies": {
+    "async": "^2.6.0",
     "babel-core": "^6.9.1",
     "bcrypt": "^1.0.3",
     "bigi": "^1.4.2",
@@ -49,6 +50,9 @@
     "fs-extra": "^4.0.2",
     "fusioncharts": "^3.12.2",
     "helmet": "^3.8.2",
+    "imagemin": "^5.3.1",
+    "imagemin-jpegtran": "^5.0.2",
+    "imagemin-pngquant": "^5.0.1",
     "install": "^0.10.1",
     "isomorphic-fetch": "^2.2.1",
     "jsonwebtoken": "^8.0.1",

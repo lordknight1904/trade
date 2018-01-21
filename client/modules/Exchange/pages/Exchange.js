@@ -10,6 +10,7 @@ import History from '../components/History/History';
 import appStyles from '../../App/App.css';
 import Graph from '../components/Graph/Graph';
 import OpenOrders from '../components/OpenOrders/OpenOrders';
+import exchangeStyles from '../pages/Exchange.css';
 
 class Exchange extends Component {
   constructor(props){
@@ -32,6 +33,11 @@ class Exchange extends Component {
         </Col>
         <Col md={7}>
           <div className="row">
+            <Col md={12} className={`${exchangeStyles.panelHeader}`}>
+              <div className={`${exchangeStyles.panelHeaderTitle}`}>
+                PRICE CHART
+              </div>
+            </Col>
             <Graph/>
           </div>
           <div className="row">

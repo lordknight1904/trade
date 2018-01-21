@@ -20,7 +20,7 @@ import SignInDialog from './components/Auth/SignInDialog';
 import SignUpDialog from './components/Auth/SignUpDialog';
 import TransactionDetail from './components/TransactionDetail/TransactionDetail';
 
-import { closeNotify, closeTransactionDetail, setNotify, googleAuth, login, onCloseSign } from './AppActions';
+import { closeNotify, fetchSettings } from './AppActions';
 import { getIsNotify, getMessage, getCoin, getDetail, getGoogleAuthentication, getGoogleSecret } from './AppReducer';
 import {  Modal, Table, Button, FormGroup, HelpBlock, FormControl } from 'react-bootstrap';
 
@@ -38,6 +38,7 @@ export class App extends Component {
     this.setState({isMounted: true}); // eslint-disable-line
     this.props.dispatch(getBuyOrder(this.props.coin));
     this.props.dispatch(getSellOrder(this.props.coin));
+    this.props.dispatch(fetchSettings());
   }
   onHide = () => {
     this.props.dispatch(closeNotify());

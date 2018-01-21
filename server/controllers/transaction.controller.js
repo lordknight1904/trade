@@ -6,14 +6,61 @@ import * as eth from '../util/eth';
 import * as usdt from '../util/usdt';
 
 export function getCoinLatestPrice(req, res) {
-  Transaction.find({ coin: req.params.coin }, {}, { sort: { dateCreated: -1 } }).exec((err, transactions) => {
+  Transaction.aggregate([
+    {
+      $match: {
+        coin: req.params.coin,
+      },
+    },
+    {
+      $group: {
+        _id: "$price",
+        date: { $last: "$dateCreated" },
+      }
+    },
+    { $sort: { date: -1 } },
+  ]).exec((err, prices) => {
     if (err) {
-      res.json({ rate: { coin: req.params.coin, price: 0 } });
+      res.json({ coin: req.params.coin, price: 0, volume: 0, transactions: [] });
     } else {
-      if (transactions.length === 0) {
-        res.json({ rate: { coin: req.params.coin, price: 0 } });
+      if (prices.length > 1) {
+        Transaction.aggregate([
+          {
+            $match: {
+              coin: req.params.coin,
+              price: prices[0]._id,
+              dateCreated: { $gte: new Date(prices[1].date) }
+            },
+          },
+          {
+            $group: {
+              _id: "",
+              volume: { $sum: "$amount" },
+              transactions: {
+                $push: {
+                  _id: "$_id",
+                  from: "$from",
+                  to: "$to",
+                  amount: "$amount",
+                  price: "$price",
+                  feeCoin: "$feeCoin",
+                  feeUsdt: "$feeUsdt",
+                  coin: "$coin",
+                  txCoin: "$txCoin",
+                  txUsdt: "$txUsdt",
+                }
+              }
+            }
+          }
+        ]).exec((err2, transactions) => {
+          if (err2) {
+            res.json({ coin: req.params.coin, price: 0, volume: 0, transactions: [] });
+          } else {
+            res.json({ coin: req.params.coin, price: prices[0]._id, volume: transactions[0].volume, transactions: transactions[0].transactions });
+          }
+        });
       } else {
-        res.json({ rate: { coin: req.params.coin, price: transactions[0].price } });
+        res.json({ coin: req.params.coin, price: 0, volume: 0, transactions: [] });
       }
     }
   });
@@ -30,7 +77,6 @@ export function getTransaction(req, res) {
             .find({ $or: [{ from: user._id }, { to: user._id }], coin: req.params.coin })
             .limit(20)
             .skip(20 * page)
-            .select({ _id: 0 })
             .populate('from', { userName: 1, _id: 0 })
             .populate('to', { userName: 1, _id: 0 })
             .exec((err2, transaction) => {

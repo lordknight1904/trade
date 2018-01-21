@@ -6,9 +6,46 @@ import sanitizeHtml from 'sanitize-html';
 import * as btc from '../util/btc';
 import * as usdt from '../util/usdt';
 import * as eth from '../util/eth';
+import * as dash from '../util/dash';
 import speakeasy from 'speakeasy';
 import { updateProfile } from '../routes/socket_routes/chat_socket';
+import imagemin from 'imagemin';
+import imageminJpegtran from 'imagemin-jpegtran';
+import imageminPngquant from 'imagemin-pngquant';
+import cuid from 'cuid';
+import fs from 'fs';
 
+function writeImage(base64image) {
+  return new Promise((resolve, reject) => {
+    const ext = base64image.split(';')[0].match(/jpeg|png|gif/)[0];
+    const data = base64image.replace(/^data:image\/\w+;base64,/, '');
+    const buf = new Buffer(data, 'base64');
+    const date = Date.now();
+    const srcImageName = `${date.toString()}_${cuid()}`;
+    fs.writeFile(`public/${srcImageName}.${ext}`, buf, (err) => {
+      if (err) {
+        reject('error');
+      } else {
+        imagemin([`public/${srcImageName}.${ext}`], './public', {
+          plugins: [
+            imageminJpegtran(),
+            imageminPngquant({ quality: '70-80' }),
+          ],
+        }).then(files => {
+          const imageName = `${date.toString()}_${cuid()}`;
+          fs.writeFile(`public/${imageName}.${ext}`, files[0].data, (err2) => {
+            if (err2) {
+              reject('error');
+            } else {
+              fs.unlink(`public/${srcImageName}.${ext}`, (err) => {});
+              resolve(`${imageName}.${ext}`);
+            }
+          });
+        });
+      }
+    });
+  });
+}
 function generateToken(user) {
   const u = {
     email: user.email,
@@ -47,8 +84,7 @@ export function createUser(req, res) {
           if(err) {
             console.log(err);
             res.json({ user: { code: 'error' } });
-          }
-          else{
+          } else{
             btc.addAddress().catch((err) => {
               console.log('error');
               console.log(err);
@@ -64,6 +100,29 @@ export function createUser(req, res) {
                     coin: 'BTC',
                     address: data.address,
                     private: data.private,
+                    public: data.public,
+                    wif: data.wif,
+                  }
+                }
+              }, { upsert: true }).exec();
+            });
+            dash.addAddress().catch((err) => {
+              console.log('error');
+              console.log(err);
+            }).then((data) => {
+              updateProfile(user._id);
+              dash.faucet(data.address);
+              dash.faucet(data.address);
+              dash.faucet(data.address);
+              dash.faucet(data.address);
+              User.updateOne({ _id: user._id }, {
+                $push: {
+                  addresses: {
+                    coin: 'DASH',
+                    address: data.address,
+                    private: data.private,
+                    public: data.public,
+                    wif: data.wif,
                   }
                 }
               }, { upsert: true }).exec();
@@ -83,6 +142,7 @@ export function createUser(req, res) {
                     coin: 'ETH',
                     address: data.address,
                     private: data.private,
+                    public: data.public,
                   }
                 }
               }, { upsert: true }).exec();
@@ -101,7 +161,7 @@ export function createUser(req, res) {
             content += newUser.userName;
             content += '</b></span></p> <p>Đây là liên kết để bạn xác nhận tài khoản</p>';
             content += `<a href="http://localhost:11212/user/confirm?token=${newUser._id}`;
-            content += `" target="_blank">http://diginex.com/user/confirm?token=${newUser._id}`;
+            content += `" target="_blank">http://hotcoiniex.com/user/confirm?token=${newUser._id}`;
             content += '</a>';
             content += '<p>Liên kết chỉ có thể sử dụng 1 lần. Cảm ơn bạn đã đăng ký! </p>';
             content += '</div>';
@@ -144,9 +204,9 @@ export function verifyUser(req, res) {
         res.json({ user: 'error' });
       } else {
         if (user) {
-          res.json({ user: 'Kích hoạt tài khoản thành công.' });
+          res.json({ user: 'Activated' });
         } else {
-          res.json({ user: 'Không thể kích hoạt đường dẫn này.' });
+          res.json({ user: 'Unable to activate' });
         }
       }
     });
@@ -241,6 +301,10 @@ export function getBalance(req, res) {
             }
             case 'ETH': {
               api = eth;
+              break;
+            }
+            case 'DASH': {
+              api = dash;
               break;
             }
             default: {
@@ -432,14 +496,26 @@ export function updateUserProfile(req, res) {
   if (reqProfile &&
       reqProfile.hasOwnProperty('id') &&
       reqProfile.hasOwnProperty('phone') &&
+      reqProfile.hasOwnProperty('imageSrc') &&
       reqProfile.hasOwnProperty('realName')
   ) {
-    User.findOneAndUpdate({ _id: reqProfile.id }, { realName: reqProfile.realName, phone: reqProfile.phone, isSubmitting: true }).exec((err, user) => {
-      if (err) {
-        res.json({ profile: 'error' });
-      } else {
-        res.json({ profile: 'success' });
-      }
+    const promises = [];
+    promises.push(writeImage(reqProfile.imageSrc));
+    Promise.all(promises).catch(() => {}).then((imageDirectories) => {
+      User.findOneAndUpdate(
+        { _id: reqProfile.id },
+        { realName: reqProfile.realName,
+          phone: reqProfile.phone,
+          isSubmitting: true,
+          imageDir: imageDirectories,
+        }
+        ).exec((err, user) => {
+        if (err) {
+          res.json({ profile: 'error' });
+        } else {
+          res.json({ profile: 'success' });
+        }
+      });
     });
   } else {
     res.json({ profile: 'missing' });

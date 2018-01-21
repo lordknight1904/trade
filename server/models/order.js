@@ -12,5 +12,4 @@ const orderSchema = new Schema({
   transactions: { type: Schema.Types.ObjectId, ref: 'Transaction' },
   dateCreated: { type: Date, default: Date.now },
 });
-
 export default mongoose.model('Order', orderSchema);

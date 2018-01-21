@@ -26,12 +26,13 @@ class Graph extends Component{
       type: 'candlestick',
       id: 'myChart',
       width: '100%',
-      height: '400',
+      height: '340',
       dataFormat: 'json',
       dataSource: {
         "chart": {
           // "caption": "Daily Stock Price HRYS",
           // "subCaption": "Last 2 months",
+          // "showVolumeChart": "0",
           "animation": "0",
           "numberPrefix": "$",
           "vNumberPrefix": " ",

@@ -39,7 +39,7 @@ class SignInDialog extends Component{
     this.props.dispatch(loginRequest(user)).then((res) => {
       this.setState({ isLoggingIn: false });
       if (res.user  === 'login fail') {
-        this.setState({ error: 'Không thể đăng nhập.' });
+        this.setState({ error: 'Unable to login.' });
         return;
       }
       if (res.user  === 'googleAuth') {
@@ -52,6 +52,7 @@ class SignInDialog extends Component{
       this.props.dispatch(getBalance(res.user.userName, 'BTC'));
       this.props.dispatch(getBalance(res.user.userName, 'USDT'));
       this.props.dispatch(getBalance(res.user.userName, 'ETH'));
+      this.props.dispatch(getBalance(res.user.userName, 'DASH'));
       this.props.dispatch(login(res.user));
       this.props.dispatch(onCloseSign());
     });
@@ -59,36 +60,36 @@ class SignInDialog extends Component{
 
   handleEmail = (event) => {
     if (event.target.value.trim() === '') {
-      this.setState({ email: event.target.value.trim(), emailError: 'Trường này không được trống.' });
+      this.setState({ email: event.target.value.trim(), emailError: 'This field can not be empty.' });
     } else {
       if (this.validateEmail(event.target.value.trim())) {
         this.setState({ email: event.target.value.trim(), emailError: ''});
       } else {
-        this.setState({ email: event.target.value.trim(), emailError: 'Email không đúng định dạng.' });
+        this.setState({ email: event.target.value.trim(), emailError: 'This field can not be empty.' });
       }
     }
   };
   handlePassword = (event) => {
     if (event.target.value.trim() === '') {
-      this.setState({ password: event.target.value.trim(), passwordError: 'Trường này không được trống.' });
+      this.setState({ password: event.target.value.trim(), passwordError: 'This field can not be empty.' });
     } else {
       this.setState({ password: event.target.value.trim(), passwordError: '' });
     }
   };
   handleEmailBlur = (event) => {
     if (event.target.value.trim() === '') {
-      this.setState({ emailError: 'Trường này không được trống.'});
+      this.setState({ emailError: 'This field can not be empty.'});
     } else {
       if (this.validateEmail(event.target.value.trim())) {
         this.setState({ emailError: ''});
       } else {
-        this.setState({ emailError: 'Email không đúng định dạng.'});
+        this.setState({ emailError: 'Invalid email format.'});
       }
     }
   };
   handlePasswordBlur = (event) => {
     if (event.target.value.trim() === '') {
-      this.setState({ passwordError: 'Trườg này không được trống.'});
+      this.setState({ passwordError: 'This field can not be empty.'});
     } else {
       this.setState({ passwordError: ''});
     }
@@ -137,7 +138,7 @@ class SignInDialog extends Component{
   render(){
     return (
       <Modal show={this.props.isSignIn}>
-        <Modal.Header style={{ backgroundColor: 'rgb(10, 105, 112)' }}>
+        <Modal.Header style={{ backgroundColor: '#2f3d45' }}>
           <Modal.Title style={{ textAlign: 'center', color: 'white', fontWeight: 'bold' }}>Sign In</Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -202,7 +203,7 @@ class SignInDialog extends Component{
             }
           </Form>
         </Modal.Body>
-        <Modal.Footer style={{ backgroundColor: 'rgb(10, 105, 112)', textAlign: 'center' }}>
+        <Modal.Footer style={{ backgroundColor: '#2f3d45', textAlign: 'center' }}>
           <Button onClick={this.onSigningIn} bsStyle="success" disabled={this.state.isLoggingIn || this.state.isGoogle}>Submit</Button>
           <Button onClick={this.onHide} bsStyle="danger" disabled={this.state.isLoggingIn || this.state.isGoogle}>Exit</Button>
         </Modal.Footer>

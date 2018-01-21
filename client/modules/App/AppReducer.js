@@ -1,5 +1,6 @@
 // Import Actions
 import { ACTIONS } from './AppActions';
+import update from 'react-addons-update';
 
 // Initial State
 const initialState = {
@@ -41,6 +42,7 @@ const initialState = {
 
   detail: false,
   transactionDetail: {},
+  settings: [],
   confirmations: -1,
 
   historyPage: 1,
@@ -49,12 +51,26 @@ const initialState = {
 
 const AppReducer = (state = initialState, action) => {
   switch (action.type) {
+    case ACTIONS.UPDATE_TRANSACTION:
+      let index = 0;
+      state.transaction.map((t, i) => {
+        if (t._id === action.transaction._id) {index = i;}
+      });
+      return update(state, {
+        transaction: {
+          [index]: {
+            confirmations: {$set: action.transaction.confirmations},
+          },
+        },
+      });
     case ACTIONS.UPDATE_USER_PROFILE:
       return {
         ...state,
         isSubmitting: action.user.isSubmitting,
         approved: action.user.approved,
       };
+    case ACTIONS.SET_GOOGLE_AUTHENTICATOR:
+      return { ...state, googleAuthentication: action.googleAuthentication };
     case ACTIONS.SET_HISTORY_PAGE:
       return { ...state, historyPage: action.page };
     case ACTIONS.SET_HISTORY_MAX_PAGE:
@@ -138,16 +154,19 @@ const AppReducer = (state = initialState, action) => {
       };
     }
     case ACTIONS.OPEN_ORDERS: {
-      return { ...state, openOrders: action.orders}
+      return { ...state, openOrders: action.orders }
     }
     case ACTIONS.CANCEL_ORDERS: {
-      return { ...state, cancelOrders: action.orders}
+      return { ...state, cancelOrders: action.orders }
     }
     case ACTIONS.DONE_ORDERS: {
-      return { ...state, doneOrders: action.orders}
+      return { ...state, doneOrders: action.orders }
     }
     case ACTIONS.TRANSACTION: {
-      return { ...state, transaction: action.transaction}
+      return { ...state, transaction: action.transaction }
+    }
+    case ACTIONS.ADD_SETTINGS: {
+      return { ...state, settings: action.settings }
     }
 
     default:
@@ -189,6 +208,7 @@ export const getConfirmations = state => state.app.confirmations;
 
 export const getHistoryPage = state => state.app.historyPage;
 export const getHistoryMaxPage = state => state.app.historyMaxPage;
+export const getSettings = state => state.app.settings;
 
 // Export Reducer
 export default AppReducer;

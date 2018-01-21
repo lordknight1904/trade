@@ -91,7 +91,7 @@ class Wallet extends Component{
             <tr>
               <th colSpan="4" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
                 <FormGroup style={{ marginBottom: '5px' }} >
-                  <FormControl type="text" onChange={this.onAddress} placeholder={`Receive address ${this.state.coin.name}`}style={{ marginBottom: '5px' }} />
+                  <FormControl type="text" onChange={this.onAddress} placeholder={`Receive address ${this.state.coin.name}`} style={{ marginBottom: '5px' }} />
                   <FormControl type="text" onChange={this.onAmount} placeholder="Amount" />
                 </FormGroup>
                 <p style={{ float: 'left' }}>Fee</p>
@@ -100,7 +100,7 @@ class Wallet extends Component{
                 <Button style={{ float: 'right' }} bsStyle="primary" bsSize="xsmall" disabled={this.state.isSending} onClick={this.sendCoin}>Submit</Button>
               </th>
               <th>
-                <p className={styles.pHover} style={{ float: 'left' }}>Cancel</p>
+                <p className={styles.pHover} style={{ float: 'left' }} onClick={this.onCancel}>Cancel</p>
               </th>
             </tr>
           ) : ''
@@ -110,9 +110,25 @@ class Wallet extends Component{
             return (
               <tr key={index}>
                 <th>{cl.name}</th>
-                <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].balance / cl.unit).format('0,0.[000000]') : '~'}</th>
-                <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].unconfirmedBalance / cl.unit).format('0,0.[000000]') : '~'}</th>
-                <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].hold / cl.unit).format('0,0.[000000]') : '~'}</th>
+                <th style={{ fontWeight: 'normal', textAlign: 'right' }}>
+                  {
+                    (cl.name !== 'USDT') ? (
+                        wallet[cl.name] ? numeral(wallet[cl.name].balance / cl.unit).format('0,0.000000') : '~'
+                      ) : (
+                        wallet[cl.name] ? numeral(wallet[cl.name].balance).format('0,0.000000') : '~'
+                      )
+                  }
+                  </th>
+                <th style={{ fontWeight: 'normal', textAlign: 'right' }}>{wallet[cl.name] ? numeral(wallet[cl.name].unconfirmedBalance / cl.unit).format('0,0.000000') : '~'}</th>
+                <th style={{ fontWeight: 'normal', textAlign: 'right' }}>
+                  {
+                    (cl.name !== 'USDT') ? (
+                      wallet[cl.name] ? numeral(wallet[cl.name].hold / cl.unit).format('0,0.[000000]') : '~'
+                    ) : (
+                      wallet[cl.name] ? numeral(wallet[cl.name].hold).format('0,0.[000000]') : '~'
+                    )
+                  }
+                  </th>
                 <th style={{ fontWeight: 'normal' }}>
                   {
                     (cl.name !== 'USDT') ? (

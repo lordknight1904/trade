@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Panel, Form, InputGroup, Col, ControlLabel, Tabs, Tab, Nav, NavItem, FormGroup, FormControl, HelpBlock, Button  } from 'react-bootstrap';
 import { onSignIn, onSignUp, setNotify } from '../../../App/AppActions';
-import { getId, getCoinList, getCoin, getWallet } from '../../../App/AppReducer';
+import { getId, getCoinList, getCoin, getWallet, getSettings } from '../../../App/AppReducer';
 import { createOrder } from '../../ExchangeActions';
 import style from '../../../App/App.css';
 import exchangeStyles from '../../pages/Exchange.css';
@@ -118,11 +118,25 @@ class OrderPlacer extends Component{
 
     const wallet2 = this.props.wallets['USDT'];
     const usdt = (wallet2 !== undefined) ? (wallet2.balance - wallet2.hold) : 'NaN';
+
+    const feeUsdtArr = this.props.settings.filter(set => {return set.name == 'feeUsdt';});
+    const feeUsdt = (feeUsdtArr.length > 0) ? Number(feeUsdtArr[0].value) : 0;
+
+    const total = numeral(this.state.amount).value() * numeral(this.state.price).value();
     return (
       <div className={`row ${exchangeStyles.main}`} >
         {
           (this.props.id !== '') ? (
-              <Col md={12}>
+            <Col md={12} className={`${exchangeStyles.panelHeader}`}>
+              <div className={`${exchangeStyles.panelHeaderTitle}`}>
+                WALLET
+              </div>
+            </Col>
+          ) : ''
+        }
+        {
+          (this.props.id !== '') ? (
+              <Col md={12} style={{ marginTop: '10px' }}>
                 <FormGroup controlId='coinOwnLabel'>
                   <ControlLabel className={exchangeStyles.customLabel}>{this.props.coin}</ControlLabel>
                   <ControlLabel className={exchangeStyles.customLabel} style={{ float: 'right' }}>{balance}</ControlLabel>
@@ -130,12 +144,17 @@ class OrderPlacer extends Component{
 
                 <FormGroup controlId='usdtOwnLabel'>
                   <ControlLabel className={exchangeStyles.customLabel}>USDT</ControlLabel>
-                  <ControlLabel className={exchangeStyles.customLabel} style={{ float: 'right' }}>{usdt}</ControlLabel>
+                  <ControlLabel className={exchangeStyles.customLabel} style={{ float: 'right' }}>{numeral(usdt).format('0,0.[000000]')}</ControlLabel>
                 </FormGroup>
               </Col>
             ) : ''
         }
-        <Col md={12}>
+        <Col md={12} className={`${exchangeStyles.panelHeader}`}>
+          <div className={`${exchangeStyles.panelHeaderTitle}`}>
+            ORDER FORM
+          </div>
+        </Col>
+        <Col md={12} style={{ marginTop: '10px' }}>
           <button
             className={`${exchangeStyles.modeButton} ${(this.state.type === 'buy') ? exchangeStyles.buyActive : ''}`}
             onClick={() => this.handleSelect('buy')}
@@ -149,11 +168,11 @@ class OrderPlacer extends Component{
             SELL
           </button>
         </Col>
-        <Col md={12}>
+        <Col md={12} style={{ marginTop: '10px' }}>
           <Form>
             <FormGroup controlId='formAmount'>
               <ControlLabel className={exchangeStyles.customLabel}>Amount</ControlLabel>
-              <FormControl autoComplete='off' type="text" value={this.state.amount} onChange={this.onAmount}/>
+              <FormControl autoComplete='off' type="text" value={this.state.amount} onChange={this.onAmount} style={{ backgroundColor: '#404a52', color: 'white' }}/>
               {
                 (this.state.amountBlock !== '') ? (
                     <HelpBlock>{this.state.amountBlock}</HelpBlock>
@@ -162,7 +181,7 @@ class OrderPlacer extends Component{
             </FormGroup>
             <FormGroup controlId='formPrice'>
               <ControlLabel className={exchangeStyles.customLabel}>Price</ControlLabel>
-              <FormControl autoComplete='off' type="text" value={numeral(this.state.price).format('0,0.[000000]')} onChange={this.onPrice}/>
+              <FormControl autoComplete='off' type="text" value={numeral(this.state.price).format('0,0.[000000]')} onChange={this.onPrice} style={{ backgroundColor: '#404a52', color: 'white' }}/>
               {
                 (this.state.priceBlock !== '') ? (
                     <HelpBlock>{this.state.amountBlock}</HelpBlock>
@@ -172,11 +191,31 @@ class OrderPlacer extends Component{
             <FormGroup controlId='totalLabel'>
               <ControlLabel className={exchangeStyles.customLabel}>Total</ControlLabel>
               <ControlLabel className={exchangeStyles.customLabel} style={{ float: 'right' }}>
-                {`${numeral(numeral(this.state.amount).value() * numeral(this.state.price).value()).format('0,0.[000000]')} USDT`}
+                {`${numeral(total).format('0,0.[000000]')} USDT`}
+              </ControlLabel>
+            </FormGroup>
+            <FormGroup controlId='totalLabel'>
+              <ControlLabel className={exchangeStyles.customLabel}>Fee</ControlLabel>
+              <ControlLabel className={exchangeStyles.customLabel} style={{ float: 'right' }}>
+                {`${numeral(total * feeUsdt / 100).format('0,0.[000000]')} USDT`}
+              </ControlLabel>
+            </FormGroup>
+            <FormGroup controlId='totalLabel'>
+              <ControlLabel className={exchangeStyles.customLabel}>{`Total ${(this.state.type === 'buy') ? '+' : '-'} Fee`}</ControlLabel>
+              <ControlLabel className={exchangeStyles.customLabel} style={{ float: 'right' }}>
+                {`${numeral(total *(100 + ((this.state.type === 'buy') ? 1 : -1) * feeUsdt) /100).format('0,0.[000000]')} USDT`}
               </ControlLabel>
             </FormGroup>
             <button type="button" disabled={this.state.isSending} onClick={this.onOrder} className={`${exchangeStyles.submitButton} ${(this.state.type === 'buy') ? exchangeStyles.buyActive : exchangeStyles.sellActive}`}>
-              {(this.state.type === 'buy') ? 'PLACE BUY ORDER' : 'PLAY SELL ORDER'}
+              {
+                (this.state.isSending) ? (
+                  'SUBMITTING'
+                ) : (
+                  (this.state.type === 'buy') ?
+                    'PLACE BUY ORDER' :
+                    'PLACE SELL ORDER'
+                )
+              }
             </button>
           </Form>
         </Col>
@@ -191,6 +230,7 @@ function mapStateToProps(state) {
     coin: getCoin(state),
     coinList: getCoinList(state),
     wallets: getWallet(state),
+    settings: getSettings(state),
   };
 }
 OrderPlacer.propTypes = {
@@ -198,6 +238,7 @@ OrderPlacer.propTypes = {
   id: PropTypes.string.isRequired,
   coin: PropTypes.string.isRequired,
   coinList: PropTypes.array.isRequired,
+  settings: PropTypes.array.isRequired,
   wallets: PropTypes.object.isRequired,
 };
 OrderPlacer.contextTypes = {

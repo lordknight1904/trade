@@ -19,10 +19,14 @@ class Confirm extends Component{
         this.setState({ message: res.user });
       });
     }
+    this.timer = setTimeout(this.tick, 5000);
   }
+  tick = () => {
+    this.context.router.push('/');
+  };
   render(){
     return (
-      <div className={appStyles.container} style={{ marginTop: '-50px' }}>
+      <div className={appStyles.container} style={{ marginTop: '0' }}>
         {this.state.message}
       </div>
     );

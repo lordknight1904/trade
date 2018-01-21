@@ -4,12 +4,46 @@ import Setting from '../models/setting';
 import Transaction from '../models/transaction';
 import * as btc from '../util/btc';
 import * as usdt from '../util/usdt';
+import * as dash from '../util/dash';
 import * as eth from '../util/eth';
 import mongoose from 'mongoose';
 import { ordersAndHold, updateOrderListToAll, ordersIndividualAndHold } from '../routes/socket_routes/chat_socket';
 import { scanInformRequire } from './nexmoMessage';
+import async from 'async';
+import numeral from 'numeral';
 
 let running = false;
+
+function findUsers(s, b, callback) {
+  async.parallel({
+    userFrom: (cb) => { User.findOne({ _id: s.userId }).exec(cb); },
+    userTo: (cb) => { User.findOne({ _id: b.userId }).exec(cb); }
+  }, (err, result) => {
+    callback(err, result.userFrom, result.userTo);
+  });
+}
+function updateOrders(order1, order2, amount1, amount2, callback) {
+  async.parallel({
+    order1: (cb) => {
+      Order.updateOne(
+        { _id: order1._id },
+        {
+          amountRemain: amount1,
+          stage: (amount1 > 7000) ? 'open' : 'close'
+        }).exec(cb);
+    },
+    order2: (cb) => {
+      Order.updateOne(
+        { _id: order2._id },
+        {
+          amountRemain: amount2,
+          stage: (amount2 > 7000) ? 'open' : 'close'
+        }).exec(cb);
+    },
+  }, (err, result) => {
+    callback(err, result.order1, result.order2);
+  });
+}
 export function startOrderMatching(coin, userId) {
   ordersAndHold({ coin: coin, idFrom: userId, idTo: '' });
   if (!running) {
@@ -22,47 +56,32 @@ function makeTransactionOrderToOrder(s, b) {
     if (errSetting) {
       return;
     } else {
-      const feeNetworkArr = setting.filter(s => {return s.name === 'feeNetwork';});
-      if (feeNetworkArr.length === 0) return;
-
-      const feeBTCArr = setting.filter(s => {return s.name === 'feeBTC';});
-      if (feeBTCArr.length === 0) return;
-      const feeETHArr = setting.filter(s => {return s.name === 'feeETH';});
-      if (feeETHArr.length === 0) return;
-      const feeUSDTArr = setting.filter(s => {return s.name === 'feeUSDT';});
-      if (feeETHArr.length === 0) return;
-
-      const addressBTCArr = setting.filter(s => {return s.name === 'addressBTC';});
-      if (addressBTCArr.length === 0) return;
-      const addressETHArr = setting.filter(s => {return s.name === 'addressETH';});
-      if (addressETHArr.length === 0) return;
-      const addressUSDTArr = setting.filter(s => {return s.name === 'addressUSDT';});
-      if (addressUSDTArr.length === 0) return;
-
-      const feeBTC = Number(feeBTCArr[0].value);
-      const feeETH = Number(feeETHArr[0].value);
-      const feeUSDT = Number(feeUSDTArr[0].value);
-      const feeNetwork = Number(feeNetworkArr[0].value);
-
-      const addressBTC = addressBTCArr[0].value;
-      const addressETH = addressETHArr[0].value;
-      const addressUSDT = addressUSDTArr[0].value;
-
-      let feeCoin = 0;
-      let addressCoin = '';
-
+      let feeNetwork = setting.filter(set => {return set.name == `feeNetwork${s.coin}`;});
+      let feeUsdt = setting.filter(set => {return set.name == 'feeUsdt'; });
+      let feeCoin = setting.filter(set => {return set.name == `feeCoin${s.coin}`;});
+      let addressCoin =  setting.filter(set => {return set.name == `addressCoin${s.coin}`;});
       let api = {};
+      if (feeNetwork.length === 0) return;
+      if (feeUsdt.length === 0) return;
+      if (feeCoin.length === 0) return;
+      if (addressCoin.length === 0) return;
+
+      const amount = (s.amountRemain <= b.amountRemain) ? s.amountRemain : b.amountRemain;
+      let unit = 0;
       switch (s.coin) {
         case 'BTC': {
           api = btc;
-          feeCoin = feeBTC;
-          addressCoin = addressBTC;
+          unit = 100000000;
           break;
         }
         case 'ETH': {
           api = eth;
-          feeCoin = feeETH;
-          addressCoin = addressETH;
+          unit = 1000000000000000000;
+          break;
+        }
+        case 'DASH': {
+          api = dash;
+          unit = 100000000;
           break;
         }
         default: api = {}; return;
@@ -80,94 +99,56 @@ function makeTransactionOrderToOrder(s, b) {
         .exec((errUpdate) => {
           if (errUpdate) {
           } else {
-            console.log('here');
             console.log(`khớp lệnh với giá ${b.price} ${s.price}`);
-            User.findOne({ _id: s.userId }).exec((err, userFrom) => {
-              if (err) {}
-              else {
-                if (userFrom) {
-                  User.findOne({_id: b.userId}).exec((err2, userTo) => {
-                    if (err2) ordersAndHold({ coin: b.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                    else {
-                      if (userTo) {
-                        // phi cho network la 0.0005 / 50000
-                        const amount = (s.amountRemain <= b.amountRemain) ? s.amountRemain : b.amountRemain;
-                        api.transactionWithFee(userFrom, userTo, s, b, addressCoin, feeCoin, feeNetwork).catch((err) => {
-                          ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                        }).then((txCoin) => {
-                          Order.updateMany({ _id: { $in: [ s._id, b._id ] } }, { $inc: { amountRemain:  (0 - amount)} }).exec((err3) => {
-                            if (err3) {
-                              ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                            } else {
-                              Order.updateMany(
-                                {
-                                  _id: {
-                                    $in: [
-                                      mongoose.Types.ObjectId(s._id),
-                                      mongoose.Types.ObjectId(b._id)
-                                    ]
-                                  },
-                                  amountRemain: { $lte: 200000 },
-                                },
-                                { stage: 'close' })
-                                .exec((err4) => {
-                                  if (err4) {
-                                    ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                                  } else {
-                                    Order.updateMany(
-                                      {
-                                        _id: {
-                                          $in: [
-                                            mongoose.Types.ObjectId(s._id),
-                                            mongoose.Types.ObjectId(b._id)
-                                          ]
-                                        },
-                                        amountRemain: { $gt: 200000 },
-                                        stage: 'trading'
-                                      },
-                                      { stage: 'open' })
-                                      .exec((err5) => {
-                                        if (err5) {
-                                          ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                                        } else {
-                                          orderMatching(s.coin);
-                                          const transaction = new Transaction({
-                                            from: userFrom._id,
-                                            to: userTo._id,
-                                            amount,
-                                            price: s.price,
-                                            feeCoin,
-                                            feeUsdt: feeUSDT,
-                                            coin: s.coin,
-                                            txCoin,
-                                          });
-                                          User.updateMany(
-                                            {
-                                              _id: {
-                                                $in: [
-                                                  mongoose.Types.ObjectId(userFrom._id),
-                                                  mongoose.Types.ObjectId(userTo._id)
-                                                ]
-                                              },
-                                            },
-                                            { $push: { transactions: transaction._id} },
-                                            { upsert: true, new: true, setDefaultsOnInsert: true }
-                                          ).exec(() => {});
-                                          transaction.save(() => {
-                                            // scanInformRequire(s.coin);
-                                            ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id  });
-                                          });
-                                        }
-                                      });
-                                  }
-                                });
-                            }
-                          });
-                        });
-                      }
-                    }
+            findUsers(s, b,(err2, userFrom, userTo) => {
+              if (!err2) {
+                api.transactionWithFee(userFrom, userTo, s, b, addressCoin[0].value, feeCoin[0].value, feeNetwork[0].value)
+                .catch((err) => {
+                  ordersAndHold({coin: s.coin, idFrom: userFrom._id, idTo: userTo._id});
+                })
+                .then((tx) => {
+                  const amount1 = s.amountRemain - amount;
+                  const amount2 = b.amountRemain - amount;
+                  updateOrders(s, b, amount1, amount2, () => {
+                    ordersAndHold({coin: s.coin, idFrom: userFrom._id, idTo: userTo._id});
+                    orderMatching(s.coin);
+                    const transaction = new Transaction({
+                      from: userFrom._id,
+                      to: userTo._id,
+                      amount,
+                      price: s.price,
+                      feeCoin: tx.fee,
+                      feeUsdt: amount / unit * numeral(b.price).value() * feeUsdt[0].value / 100,
+                      coin: s.coin,
+                      txCoin: tx.txHash,
+                    });
+                    User.updateMany(
+                      {_id: {$in: [s._id, b._id]},},
+                      {$push: {transactions: transaction._id}},
+                      {upsert: true, new: true, setDefaultsOnInsert: true}
+                    ).exec(() => {});
+
+                    const at = userTo.addresses.filter((a) => {
+                      return a.coin === b.coin;
+                    });
+                    const addressTo = (at.length > 0) ? at[0] : [];
+                    const webhook = {
+                      'event': 'tx-confirmation',
+                      'address': addressTo.address,
+                      'url': `http://124753d4.ngrok.io/api/order/done/${s.coin}/${userTo.userName}/${transaction._id}`,
+                      confirmations: 6
+                    };
+                    api.createHook(webhook);
+                    console.log(`http://a3409b11.ngrok.io/api/order/done/${s.coin}/${userTo.userName}/${transaction._id}`);
+                    transaction.save((err) => {
+                      if (err) console.log(err);
+                      // scanInformRequire(s.coin);
+                      ordersAndHold({coin: s.coin, idFrom: userFrom._id, idTo: userTo._id});
+                    });
                   });
-                }
+                });
+              } else {
+                ordersAndHold({coin: s.coin, idFrom: userFrom._id, idTo: userTo._id});
               }
             });
           }
@@ -176,13 +157,11 @@ function makeTransactionOrderToOrder(s, b) {
   });
 }
 export function orderMatching(coin) {
-  console.log('begin');
   Order.aggregate([
     {
       $match: {
         stage: 'open',
         coin: coin,
-        amountRemain: { $gte: 200000 },
       },
     },
     { $sort: { 'price': -1, 'dateCreated': -1 } },
@@ -223,7 +202,6 @@ export function orderMatching(coin) {
         sell.map((s) => {
           if (b.price >= s.price) {
             if (!running && b.userId.toString() !== s.userId.toString()) {
-              console.log('match');
               makeTransactionOrderToOrder(s, b);
               running = true;
               return;

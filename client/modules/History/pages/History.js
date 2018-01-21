@@ -6,6 +6,7 @@ import { setTransactionDetail, getConfirmation, setConfirmation, setHistoryMaxPa
   addTransaction, changeCoin, fetchTransaction } from '../../App/AppActions';
 import { getCoinList, getCoin, getUserName, getTransaction, getTransactionDetail, getHistoryMaxPage, getHistoryPage, getId } from '../../App/AppReducer';
 import { getBuyOrder, getSellOrder } from "../../Exchange/ExchangeActions";
+import HistoryDetail from '../components/HistoryDetail';
 import numeral from 'numeral';
 import style from '../../App/App.css';
 
@@ -83,35 +84,20 @@ class History extends Component{
             <tr>
               <th>Date</th>
               <th>Type</th>
-              <th>Price</th>
-              <th>Amount</th>
-              <th>Fee</th>
+              <th>{`USDT/${this.props.coin}`}</th>
+              <th>{`Amount(${this.props.coin})`}</th>
               <th>Total(USDT)</th>
+              <th>{`Net Fee(${this.props.coin})`}</th>
+              <th>Trans Fee(USDT)</th>
+              <th>Total with Fee(USDT)</th>
+              <th>{`Confirm(${this.props.coin})`}</th>
             </tr>
             </thead>
             <tbody>
             {
               this.props.transaction.map((trans, index) => {
-                const date = new Date(trans.dateCreated);
-                const hours =  date.getHours() < 10 ? `0${date.getHours()}` : date.getHours();
-                const minutes =  date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes();
-                const time = `${date.getDay()}/${date.getMonth()}/${date.getFullYear()} ${hours}:${minutes}`;
-                console.log(trans);
                 return (
-                  <tr key={index} onClick={() => { this.detail(trans);}}>
-                    <th>{time}</th>
-                    <th>{(trans.hasOwnProperty('from') && this.props.userName === trans.from.userName) ? 'Sell' : 'Buy'}</th>
-                    <th>{numeral(trans.price).format('0,0.[000000]')}</th>
-                    <th>{numeral(trans.amount / unit).format('0,0.[000000]')}</th>
-                    <th>
-                      {
-                        (this.props.userName === trans.from.userName) ?
-                          `${numeral(trans.feeCoin / unit).format('0,0.[000000]')} ${trans.coin}`
-                          : `${numeral(trans.feeUsdt / unit2).format('0,0.[000000]')} USDT`
-                      }
-                    </th>
-                    <th>{trans.amount / unit * trans.price }</th>
-                  </tr>
+                  <HistoryDetail key={index} detail={trans} />
                 );
               })
             }

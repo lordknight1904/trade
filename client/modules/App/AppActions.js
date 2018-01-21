@@ -25,7 +25,16 @@ export const ACTIONS = {
   SET_HISTORY_PAGE: 'SET_HISTORY_PAGE',
   SET_HISTORY_MAX_PAGE: 'SET_HISTORY_MAX_PAGE',
   UPDATE_USER_PROFILE: 'UPDATE_USER_PROFILE',
+  SET_GOOGLE_AUTHENTICATOR: 'SET_GOOGLE_AUTHENTICATOR',
+  ADD_SETTINGS: 'ADD_SETTINGS',
+  UPDATE_TRANSACTION: 'UPDATE_TRANSACTION',
 };
+export function setGoogleAuthentication(googleAuthentication){
+  return {
+    type: ACTIONS.SET_GOOGLE_AUTHENTICATOR,
+    googleAuthentication
+  };
+}
 export function updateUserProfile(user) {
   return {
     type: ACTIONS.UPDATE_USER_PROFILE,
@@ -60,6 +69,13 @@ export function getConfirmation(coin, txHash) {
   return (dispatch) => {
     return callApi(`transaction/hash/${coin}/${txHash}`, 'get', '' ).then(res => {
       dispatch(setConfirmation(res.confirmations));
+    });
+  };
+}
+export function getConfirmation2(coin, txHash) {
+  return (dispatch) => {
+    return callApi(`transaction/hash/${coin}/${txHash}`, 'get', '' ).then(res => {
+      return res;
     });
   };
 }
@@ -202,6 +218,12 @@ export function addTransaction(transaction){
     transaction,
   };
 }
+export function updateTransaction(transaction){
+  return {
+    type: ACTIONS.UPDATE_TRANSACTION,
+    transaction,
+  };
+}
 export function setIsSubmitting(){
   return {
     type: ACTIONS.SET_IS_SUBMITTING,
@@ -225,7 +247,7 @@ export function deleteOrder(del) {
 }
 export function googleAuth(user) {
   return () => {
-    return callApi('user/google/active', 'post', '', {user}).then(res => {
+    return callApi('user/google/activate', 'post', '', {user}).then(res => {
       return res;
     });
   };
@@ -253,7 +275,7 @@ export function directSend(send) {
 }
 export function updateProfile(profile) {
   return () => {
-    return callApi('user/profile', 'post', '', {profile}).then(res => {
+    return callApi('user/profile', 'put', '', {profile}).then(res => {
       return res;
     });
   };
@@ -276,6 +298,19 @@ export function fetchUserProfile(userName) {
   return (dispatch) => {
     return callApi(`user/profile/${userName}`, 'get', '').then(res => {
       dispatch(updateUserProfile(res.user));
+    });
+  };
+}
+export function addSettings(settings){
+  return {
+    type: ACTIONS.ADD_SETTINGS,
+    settings
+  };
+}
+export function fetchSettings() {
+  return (dispatch) => {
+    return callApi('setting', 'get', '').then(res => {
+      dispatch(addSettings(res.settings));
     });
   };
 }

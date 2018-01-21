@@ -49,7 +49,7 @@ export function updateRate(rate){
 export function fetchRate(coin) {
   return (dispatch) => {
     return callApi(`price/${coin}`).then(res => {
-      dispatch(updateRate(res.rate));
+      dispatch(updateRate(res));
     });
   };
 }

@@ -28,32 +28,45 @@ class OpenOrders extends Component{
     const unit = (coin.length > 0) ? coin[0].unit : 0;
     return (
       <Col md={12} className={`${exchangeStyles.openOrders} ${exchangeStyles.textColor}`}>
-        <div className="row" style={{ height: '16px' }}>
-          <Col md={3} style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }} >
-            Volume
+        <div className="row">
+          <Col md={12} className={`${exchangeStyles.panelHeader}`}>
+            <div className={`${exchangeStyles.panelHeaderTitle}`}>
+              OPEN ORDERS
+            </div>
           </Col>
-          <Col md={3} style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }} >
-            Price
+        </div>
+        <div className={`row ${exchangeStyles.panelHeader2}`}>
+          <Col md={1} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
+            Size
           </Col>
-          <Col md={2} style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }} >
-            Type
+          <Col md={1} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'center' }}>
+            {`Filled (${this.props.coin})`}
           </Col>
-          <Col md={2} style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }} >
-            Date
+          <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
+            Price (USDT)
           </Col>
-          <Col md={2} style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }} >
-            Cancel
+          <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
+            Network Fee
+          </Col>
+          <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
+            Fee Usdt
+          </Col>
+          <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
+            Time
+          </Col>
+          <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'center' }}>
+            Status
           </Col>
         </div>
         <div className="row">
           <Col md={12}>
             <div className="row">
-              <hr style={{ marginBottom: '0', marginTop: '10px' }}/>
+              <hr style={{ marginBottom: '0', marginTop: '0', borderTop: '1px solid #222f38' }}/>
             </div>
           </Col>
         </div>
         <div className="row">
-          <Col md={12} style={{ backgroundColor: '#1e2b34', overflowY: 'hidden', height: 'calc(100vh - 477px)' }}>
+          <Col md={12} style={{ backgroundColor: '#1e2b34', overflowY: 'hidden', height: 'calc(100vh - 511px)' }}>
             {
               (this.props.openOrder.length === 0) ? (
                 <div className="row" style={{ textAlign: 'center' }}>
@@ -67,22 +80,34 @@ class OpenOrders extends Component{
                 const hours =  date.getHours() < 10 ? `0${date.getHours()}` : date.getHours();
                 const minutes =  date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes();
                 const time = `${date.getDay()}/${date.getMonth()+1}/${date.getFullYear()} ${hours}:${minutes}`;
+                let fee = 0;
+                let feeUsdt = 0;
+                o.transactions.map((t) => {
+                  fee += t.feeCoin;
+                  feeUsdt += t.feeUsdt;
+                });
                 return (
                   <div className="row" key={index} >
-                    <Col md={3} style={{ color: '#d6d8da' }}>
-                      {numeral(o.amountRemain / unit).format('0,0.[000000]')}
+                    <Col md={1} style={{ color: '#d6d8da', textAlign: 'right' }}>
+                      {numeral(o.amount / unit).format('0,0.[000000]')}
                     </Col>
-                    <Col md={3} style={{ color: (o.type === 'buy') ? '#7fed63' : '#ff6939' }}>
+                    <Col md={1} style={{ color: '#d6d8da', textAlign: 'center' }}>
+                      {numeral((o.amount - o.amountRemain) / unit).format('0,0.[000000]')}
+                    </Col>
+                    <Col md={2} style={{ color: (o.type === 'buy') ? '#7fed63' : '#ff6939', textAlign: 'right' }}>
                       {numeral(o.price).format('0,0.[000000]')}
                     </Col>
-                    <Col md={2} style={{ color: (o.type === 'buy') ? '#7fed63' : '#ff6939' }}>
-                      {o.type}
+                    <Col md={2} style={{ color: '#d6d8da', textAlign: 'right' }}>
+                      {numeral(fee).format('0,0.[000000]')}
                     </Col>
-                    <Col md={2} style={{ color: '#d6d8da' }}>
+                    <Col md={2} style={{ color: '#d6d8da', textAlign: 'right' }}>
+                      {numeral(feeUsdt).format('0,0.[000000]')}
+                    </Col>
+                    <Col md={2} style={{ color: '#d6d8da', textAlign: 'right' }}>
                       {time}
                     </Col>
-                    <Col md={2} style={{ color: '#d6d8da', cursor: 'pointer' }} onClick={() => this.onCancel(o)}>
-                      Cancel
+                    <Col md={2} style={{ color: '#d6d8da', cursor: 'pointer', textAlign: 'center' }} onClick={() => this.onCancel(o)}>
+                      Open(Cancel)
                     </Col>
                   </div>
                 );

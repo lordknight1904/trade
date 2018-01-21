@@ -112,8 +112,8 @@ class SignUpDialog extends Component{
   render(){
     return (
       <Modal show={this.props.isSignUp}>
-        <Modal.Header style={{ backgroundColor: 'rgb(10, 105, 112)' }}>
-          <Modal.Title style={{ textAlign: 'center', color: 'white', fontWeight: 'bold' }}>Đăng ký</Modal.Title>
+        <Modal.Header style={{ backgroundColor: '#2f3d45' }}>
+          <Modal.Title style={{ textAlign: 'center', color: 'white', fontWeight: 'bold' }}>Sign Up</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form horizontal>
@@ -125,14 +125,14 @@ class SignUpDialog extends Component{
               </Col>
             </FormGroup>
             <FormGroup controlId="formHorizontalUserName" validationState={(this.state.userNameError !== '') ? 'error' : null}>
-              <Col sm={3} componentClass={ControlLabel}>Tên tài khoản</Col>
+              <Col sm={3} componentClass={ControlLabel}>Account Name</Col>
               <Col sm={9}>
                 <FormControl type="text" value={this.state.userName} onChange={this.handleUserName} onBlur={this.handleUserNameBlur} />
                 <HelpBlock>{this.state.userNameError}</HelpBlock>
               </Col>
             </FormGroup>
             <FormGroup controlId="formHorizontalPassword" validationState={(this.state.passwordError !== '') ? 'error' : null}>
-              <Col sm={3} componentClass={ControlLabel}>Mật khẩu</Col>
+              <Col sm={3} componentClass={ControlLabel}>Password</Col>
               <Col sm={9}>
                 <FormControl type="password" value={this.state.password} onChange={this.handlePassword} onBlur={this.handlePasswordBlur} />
                 <HelpBlock>{this.state.passwordError}</HelpBlock>
@@ -140,12 +140,12 @@ class SignUpDialog extends Component{
             </FormGroup>
           </Form>
         </Modal.Body>
-        <Modal.Footer style={{ backgroundColor: 'rgb(10, 105, 112)', textAlign: 'center' }}>
+        <Modal.Footer style={{ backgroundColor: '#2f3d45', textAlign: 'center' }}>
           <Button onClick={this.onSigningUp} bsStyle="success" disabled={this.state.isSigningUp}>
-            {(this.state.isSigningUp) ? 'Đang gửi yêu cầu' : 'Đăng ký'}
+            {(this.state.isSigningUp) ? 'Submitting' : 'Submit'}
           </Button>
           <Button onClick={this.onHide} bsStyle="danger" disabled={this.state.isSigningUp}>
-            {(this.state.isSigningUp) ? 'Đang gửi yêu cầu' : 'Thoát'}
+            {(this.state.isSigningUp) ? 'Submitting' : 'Close'}
           </Button>
         </Modal.Footer>
       </Modal>

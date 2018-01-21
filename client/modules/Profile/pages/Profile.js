@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import QRCode from 'qrcode';
 import { getId, getGoogleAuthentication, getGoogleSecret, getIsSubmitting, getApproved, getRealName, getPhone, getCoinList, getRequireInform } from '../../App/AppReducer';
-import { googleAuth, setNotify, cancelGoogle, logout, updateProfile, setIsSubmitting, addInform, refetchUserProfile, deleteInform } from '../../App/AppActions';
+import { googleAuth, setNotify, cancelGoogle, logout, updateProfile, setIsSubmitting, addInform, refetchUserProfile, deleteInform, setGoogleAuthentication } from '../../App/AppActions';
 import { Checkbox, Modal, Table, Button, FormGroup, HelpBlock, FormControl, DropdownButton, MenuItem } from 'react-bootstrap';
 import numeral from 'numeral';
 import { getRate } from '../../Exchange/ExchangeReducer'
@@ -23,9 +23,11 @@ class Profile extends Component{
       phone: '',
 
       inform: '',
-      coin: 'Chọn coin',
+      coin: 'Select coin',
       min: '',
       max: '',
+
+      imageSrc: '',
     };
   }
   componentWillReceiveProps(nextProps) {
@@ -88,6 +90,7 @@ class Profile extends Component{
       if (res.user === 'success') {
         this.setState({isCancelGoogle: false, token: ''});
         this.props.dispatch(setNotify('Cancel two factors security success.'));
+        this.props.dispatch(setGoogleAuthentication(false));
         this.props.dispatch(logout());
       }
     });
@@ -103,7 +106,7 @@ class Profile extends Component{
   };
   onSubmitGoogle = () => {
     if (this.state.token === '') {
-      this.props.dispatch(setNotify('Please inpu QR code.'));
+      this.props.dispatch(setNotify('Please input QR code.'));
       return;
     }
     const user = {
@@ -113,6 +116,7 @@ class Profile extends Component{
     this.props.dispatch(googleAuth(user)).then((res) => {
       if (res.user === 'success') {
         this.props.dispatch(setNotify('Two factors security activated.'));
+        this.props.dispatch(setGoogleAuthentication(true));
         this.setState({ isGoogle: false, token: '' });
       } else {
         this.props.dispatch(setNotify(res.user));
@@ -126,6 +130,7 @@ class Profile extends Component{
       id: this.props.id,
       realName: this.state.realName,
       phone: this.state.phone,
+      imageSrc: this.state.imageSrc,
     };
     this.props.dispatch(updateProfile(profile)).then((res) => {
       if (res.profile === 'error') {
@@ -160,7 +165,7 @@ class Profile extends Component{
   handleMin = (event) => { this.setState({ min: event.target.value }); };
   handleMax = (event) => { this.setState({ max: event.target.value }); };
   onAddInform = () => {
-    if (this.state.coin === 'Chọn coin') {
+    if (this.state.coin === 'Select coin') {
       this.props.dispatch(setNotify('Please select coin for price notification.'));
       return;
     }
@@ -182,7 +187,7 @@ class Profile extends Component{
     };
     this.props.dispatch(addInform(inform)).then((res) => {
       if (res.inform === 'success') {
-        this.setState({ min: '', max: '', coin: 'Chọn coin' });
+        this.setState({ min: '', max: '', coin: 'Select coin' });
         this.props.dispatch(setNotify('Price notification placed.'));
         this.props.dispatch(refetchUserProfile(res.user));
       } else {
@@ -197,13 +202,28 @@ class Profile extends Component{
     };
     this.props.dispatch(deleteInform(inform)).then((res) => {
       if (res.inform === 'success') {
-        this.setState({ min: 0, max: 0, coin: 'Chọn coin' });
+        this.setState({ min: 0, max: 0, coin: 'Select coin' });
         this.props.dispatch(setNotify('Price notification canceled.'));
         this.props.dispatch(refetchUserProfile(res.user));
       } else {
         this.props.dispatch(setNotify('Price notification failed.'));
       }
     });
+  };
+  onUpload = (e) => {
+    e.preventDefault();
+    const reader = new FileReader();
+    const file = e.target.files[0];
+    let base64image = null;
+    reader.onload = (readerEvt) => {
+      base64image = readerEvt.target.result;
+    };
+    reader.onloadend = () => {
+      this.setState({
+        imageSrc: base64image,
+      });
+    };
+    reader.readAsDataURL(file);
   };
   render() {
     return (
@@ -231,7 +251,7 @@ class Profile extends Component{
               }
             </tr>
             <tr>
-              <td>Số điện thoại</td>
+              <td>Phone number</td>
               {
                 this.props.approved ? (
                     <td>{this.props.phone}</td>
@@ -241,7 +261,7 @@ class Profile extends Component{
                         <FormControl
                           disabled={this.props.isSubmitting || this.props.approved}
                           type="text"
-                          placeholder="Phoen number"
+                          placeholder="Phone number"
                           value={this.state.phone}
                           onChange={this.handlePhone}
                         />
@@ -251,10 +271,40 @@ class Profile extends Component{
               }
             </tr>
             <tr>
-              <td colSpan="2">
-                <Button bsStyle="primary" bsSize="small" disabled={this.props.approved || this.props.isSubmitting} onClick={this.onSubmitProfile}>Submit</Button>
-              </td>
+              <td>Identity Verification Photo</td>
+              {
+                this.props.approved ? (
+                    <td>{this.props.phone}</td>
+                  ) : (
+                    <td>
+                      <Button bsStyle="info" bsSize="xsmall" style={{ padding: '0' }}>
+                        <label htmlFor="file-upload" style={{ padding: '5px 12px', width: '100%', height: '100%', margin: '0' }}>
+                          <i className="fa fa-cloud-upload" style={{ color: 'white' }} />
+                          <p style={{ margin: '0', paddingLeft: '5px', display: 'inline-block' }}>Upload</p>
+                        </label>
+                      </Button>
+                      <input id="file-upload" accept="image/jpeg, image/png" type="file" style={{ display: 'none' }}  onChange={this.onUpload}/>
+                      <br/>
+                      {
+                        (this.state.imageSrc !== '') ? (
+                          <img width={200} height={150} src={this.state.imageSrc}/>
+                        ) : ''
+                      }
+                    </td>
+                  )
+              }
             </tr>
+
+            {
+              !this.props.approved ? (
+                  <tr>
+                    <td colSpan="2">
+                      <Button bsStyle="primary" bsSize="small" disabled={this.props.approved || this.props.isSubmitting}
+                              onClick={this.onSubmitProfile}>Submit</Button>
+                    </td>
+                  </tr>
+                ) : <tr />
+            }
             <tr>
               <td>Two factors security</td>
               <td>
@@ -280,7 +330,7 @@ class Profile extends Component{
                     <td />
                     <td style={{ display: 'table' }} className={appStyles.profileTableDisplay}>
                       <DropdownButton title={this.state.coin} id="coin-seletec-dropdown" onSelect={this.onCoinSelect} style={{ display: 'table-cell', width: '100%' }}>
-                        <MenuItem eventKey='Chọn coin'>Coin</MenuItem>
+                        <MenuItem eventKey='Select coin'>Coin</MenuItem>
                         {
                           this.props.coinList.map((coin, index) => (
                             <MenuItem key={`${index}CoinSelect`} eventKey={coin.name}>{coin.name}</MenuItem>

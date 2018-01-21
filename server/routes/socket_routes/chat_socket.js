@@ -33,6 +33,13 @@ export function ordersIndividualAndHold(message) {
     }
   }
 }
+export function updateCoinBalance(message) {
+  for (const socket in connections) {
+    if (connections[socket].userID.toString() === message.id.toString()) {
+      io.to(socket).emit('updateCoinBalance', { code: 'updateCoinBalance', coin: message.coin, tx: message.tx, confirmations: message.confirmations });
+    }
+  }
+}
 export function updateProfile(userId) {
   for (const socket in connections) {
     if (connections[socket].userID.toString() === userId.toString()) {

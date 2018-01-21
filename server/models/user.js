@@ -14,12 +14,15 @@ const userSchema = new Schema({
     coin: { type: 'String', required: true },
     address: { type: 'String', required: true },
     private: { type: 'String', required: true },
+    public: { type: 'String', required: true },
+    wif: { type: 'String', required: true },
   }],
 
   isSubmitting: {type: 'Boolean', default: false},
   approved: {type: 'Boolean', default: false},
   realName: {type: 'String', default: ''},
   phone: {type: 'String', default: ''},
+  imageDir: {type: 'String', default: ''},
   isInform: {type: 'Boolean', default: false},
   requireInform: [{
     coin: { type: 'String', default: '' },
