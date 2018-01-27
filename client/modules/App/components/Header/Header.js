@@ -32,8 +32,8 @@ class Header extends Component{
   };
   handleUser = (selectedKey) => {
     switch (selectedKey) {
-      case 'logOut': {
-        this.context.router.push('/');
+        case 'logOut': {
+          this.context.router.push('/');
         this.props.dispatch(logout());
         break;
       }

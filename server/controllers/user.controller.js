@@ -283,7 +283,6 @@ export function getBalance(req, res) {
                   res.json({
                     user: {
                       coin: sanitizeHtml(req.params.coin),
-                      address: '',
                       balance: balance.balance,
                       unconfirmedBalance: 0,
                       hold: Number(hold),
