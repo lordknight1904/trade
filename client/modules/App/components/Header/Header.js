@@ -88,12 +88,18 @@ class Header extends Component{
     clearTimeout(this.timer1);
     clearTimeout(this.timer2);
   }
+
+  chuyenPage = () => {
+    window.open('http://125.212.253.77:9000', '_blank');
+  };
   render() {
     return (
       <Navbar inverse collapseOnSelect className={styles.headerstyle}>
         <Navbar.Header>
           <Navbar.Brand>
-            <a onClick={this.onClick}>Hotcoiniex</a>
+            <a onClick={this.onClick} style={{ padding: '0' }}>
+              <img role="presentation" style={{ height: '50px' }} src="/logo/logo.svg" />
+            </a>
           </Navbar.Brand>
           <Navbar.Toggle />
         </Navbar.Header>
@@ -105,7 +111,7 @@ class Header extends Component{
               <MenuItem eventKey="ETH"><Glyphicon glyph="glyphicon glyphicon-credit-card" />   ETH</MenuItem>
             </NavDropdown>
           </Nav>
-          <Nav pullRight>
+          <Nav pullRight onSelect={this.chuyenPage}>
             <NavItem>Hotcoin Market</NavItem>
           </Nav>
           {

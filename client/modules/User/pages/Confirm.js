@@ -24,10 +24,16 @@ class Confirm extends Component{
   tick = () => {
     this.context.router.push('/');
   };
-  render(){
+  translate = (str) => {
+    switch (str) {
+      case 'Activated': return 'Kích hoạt thành công';
+      default: return str;
+    }
+  };
+  render() {
     return (
       <div className={appStyles.container} style={{ marginTop: '0' }}>
-        {this.state.message}
+        {this.translate(this.state.message)}
       </div>
     );
   }

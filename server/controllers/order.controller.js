@@ -298,16 +298,16 @@ export function send(req, res) {
                     coin: reqSend.coin,
                   };
                   User.findOneAndUpdate(
-                    {_id: reqSend.id},
-                    {$push: {directHistory}},
+                    { _id: reqSend.id },
+                    { $push: { directHistory } },
                     { upsert: true, new: true, setDefaultsOnInsert: true }
                     ).exec((err2) => {
-                    if (err2) {
-                      res.json({order: 'missing'});
-                    } else {
-                      res.json({order: 'success'});
-                    }
-                  });
+                      if (err2) {
+                        res.json({ order: 'missing' });
+                      } else {
+                        res.json({ order: 'success' });
+                      }
+                    });
                 }
               });
               break;

@@ -42,7 +42,7 @@ class History extends Component{
     this.props.dispatch(setHistoryPage(eventKey));
     this.props.dispatch(fetchTransaction(this.props.userName, this.props.coin, eventKey - 1));
   };
-  render(){
+  render() {
     const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; });
     const unit = (coin.length > 0) ? coin[0].unit : 0;
 

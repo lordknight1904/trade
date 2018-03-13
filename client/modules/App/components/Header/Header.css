@@ -6,9 +6,9 @@
 }
 
 .header {
-  background: #eee url('../../header-bk.png') center;
-  background-size: cover;
-  border-bottom: 1px solid #ccc;
+  background: #eee url('../../header-bk.png') center !important;
+  background-size: cover !important;
+  border-bottom: 1px solid #ccc !important;
 }
 
 .content {
@@ -79,18 +79,18 @@
   margin-right: auto;
 }
 .headerstyle{
-  width: 100%;
-  height: 48px;
-  float: left;
+  width: 100% !important;
+  height: 48px !important;
+  float: left !important;
   /*background-color: rgb(10, 105, 112);*/
   /*background-image: linear-gradient(rgb(10, 105, 112), rgb(8, 96, 102) 10%, rgb(6, 89, 94) 65%);*/
   /*border-bottom: 1px solid rgb(3, 30, 33);*/
-  border-radius: 0;
-  border-left:0;
-  border-right:0;
-  border-top:0;
-  position: fixed;
-  z-index: 1000;
+  border-radius: 0 !important;
+  border-left:0 !important;
+  border-right:0 !important;
+  border-top:0 !important;
+  position: fixed !important;
+  z-index: 1000 !important;
 }
 .headerstyle >div>div ul li {
   /*border-left: 1px solid rgb(7, 73, 76);*/

@@ -224,7 +224,7 @@ export function updateTransaction(transaction){
     transaction,
   };
 }
-export function setIsSubmitting(){
+export function setIsSubmitting() {
   return {
     type: ACTIONS.SET_IS_SUBMITTING,
   };
