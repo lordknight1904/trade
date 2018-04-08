@@ -14,53 +14,95 @@ export function getCoinLatestPrice(req, res) {
     },
     {
       $group: {
-        _id: "$price",
-        date: { $last: "$dateCreated" },
-      }
+        _id: '$price',
+        date: { $last: '$dateCreated' },
+      },
     },
     { $sort: { date: -1 } },
   ]).exec((err, prices) => {
     if (err) {
       res.json({ coin: req.params.coin, price: 0, volume: 0, transactions: [] });
     } else {
-      if (prices.length > 1) {
-        Transaction.aggregate([
-          {
-            $match: {
-              coin: req.params.coin,
-              price: prices[0]._id,
-              dateCreated: { $gte: new Date(prices[1].date) }
+      switch (prices.length) {
+        case 0: {
+          res.json({ coin: req.params.coin, price: 0, volume: 0, transactions: [] });
+          break;
+        }
+        case 1: {
+          Transaction.aggregate([
+            {
+              $match: {
+                coin: req.params.coin,
+                price: prices[0]._id,
+                dateCreated: { $gte: new Date(prices[0].date) },
+              },
             },
-          },
-          {
-            $group: {
-              _id: "",
-              volume: { $sum: "$amount" },
-              transactions: {
-                $push: {
-                  _id: "$_id",
-                  from: "$from",
-                  to: "$to",
-                  amount: "$amount",
-                  price: "$price",
-                  feeCoin: "$feeCoin",
-                  feeUsdt: "$feeUsdt",
-                  coin: "$coin",
-                  txCoin: "$txCoin",
-                  txUsdt: "$txUsdt",
-                }
-              }
+            {
+              $group: {
+                _id: '',
+                volume: { $sum: '$amount' },
+                transactions: {
+                  $push: {
+                    _id: '$_id',
+                    from: '$from',
+                    to: '$to',
+                    amount: '$amount',
+                    price: '$price',
+                    feeCoin: '$feeCoin',
+                    feeUsdt: '$feeUsdt',
+                    coin: '$coin',
+                    txCoin: '$txCoin',
+                    txUsdt: '$txUsdt',
+                  },
+                },
+              },
+            },
+          ]).exec((err2, transactions) => {
+            if (err2) {
+              res.json({ coin: req.params.coin, price: 0, volume: 0, transactions: [] });
+            } else {
+              res.json({ coin: req.params.coin, price: prices[0]._id, volume: transactions[0].volume, transactions: transactions[0].transactions });
             }
-          }
-        ]).exec((err2, transactions) => {
-          if (err2) {
-            res.json({ coin: req.params.coin, price: 0, volume: 0, transactions: [] });
-          } else {
-            res.json({ coin: req.params.coin, price: prices[0]._id, volume: transactions[0].volume, transactions: transactions[0].transactions });
-          }
-        });
-      } else {
-        res.json({ coin: req.params.coin, price: 0, volume: 0, transactions: [] });
+          });
+          break;
+        }
+        default: {
+          Transaction.aggregate([
+            {
+              $match: {
+                coin: req.params.coin,
+                price: prices[0]._id,
+                dateCreated: { $gte: new Date(prices[1].date) },
+              },
+            },
+            {
+              $group: {
+                _id: '',
+                volume: { $sum: '$amount' },
+                transactions: {
+                  $push: {
+                    _id: '$_id',
+                    from: '$from',
+                    to: '$to',
+                    amount: '$amount',
+                    price: '$price',
+                    feeCoin: '$feeCoin',
+                    feeUsdt: '$feeUsdt',
+                    coin: '$coin',
+                    txCoin: '$txCoin',
+                    txUsdt: '$txUsdt',
+                  },
+                },
+              },
+            },
+          ]).exec((err2, transactions) => {
+            if (err2) {
+              res.json({ coin: req.params.coin, price: 0, volume: 0, transactions: [] });
+            } else {
+              res.json({ coin: req.params.coin, price: prices[0]._id, volume: transactions[0].volume, transactions: transactions[0].transactions });
+            }
+          });
+        }
       }
     }
   });

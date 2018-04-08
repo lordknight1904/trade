@@ -80,8 +80,9 @@
 }
 .headerstyle{
   width: 100% !important;
-  height: 48px !important;
-  float: left !important;
+  /*height: 48px !important;*/
+  /*float: left !important;*/
+  margin-bottom: 0 !important;
   /*background-color: rgb(10, 105, 112);*/
   /*background-image: linear-gradient(rgb(10, 105, 112), rgb(8, 96, 102) 10%, rgb(6, 89, 94) 65%);*/
   /*border-bottom: 1px solid rgb(3, 30, 33);*/

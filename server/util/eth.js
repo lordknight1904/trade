@@ -1,6 +1,6 @@
 import bcypher from 'blockcypher';
 
-const ethapi = new bcypher('beth', 'test', '7d52d8baf3554ecfa0884b9669459e1e');
+const ethapi = new bcypher('beth', 'test', '9f144d98e3f1497087b2c9f3381eb47b');
 
 import bigi from 'bigi';
 
@@ -123,18 +123,15 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
     const addressFrom = (af.length > 0) ? af[0] : [];
     const addressTo = (at.length > 0) ? at[0] : [];
     if (af.length === 0 || at.length === 0) reject('addressError');
-    console.log(addressFrom.address);
-    console.log(addressTo.address);
-    console.log(Number(amount) - feeNetwork);
     const newtx = {
-      inputs: [{addresses: [addressFrom.address]}],
+      inputs: [{ addresses: [addressFrom.address] }],
       outputs: [
-        {addresses: [addressTo.address], value: Number(amount) - feeNetwork},
+        { addresses: [addressTo.address], value: Number(amount) - feeNetwork },
         // {addresses: [addressFee], value: Number(feeTrade)}
       ],
-      gas_limit: Number(feeNetwork)
+      gas_limit: Number(feeNetwork),
     };
-    ethapi.newTX(newtx, function (err, data) {
+    ethapi.newTX(newtx, (err, data) => {
       if (err) {
         reject('transactionError');
       } else {
@@ -142,25 +139,24 @@ export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addres
         let keys = null;
         keys = new bitcoin.ECPair(bigi.fromHex(addressFrom.private));
         data.pubkeys = [];
-        data.signatures = data.tosign.map(function (tosign) {
+        data.signatures = data.tosign.map((tosign) => {
           data.pubkeys.push(keys.getPublicKeyBuffer().toString('hex'));
           return keys.sign(new buffer.Buffer(tosign, 'hex')).toDER().toString('hex');
         });
-        console.log(data);
-        ethapi.sendTX(data, function (err2, ret) {
+        ethapi.sendTX(data, (err2, ret) => {
           if (err2) {
             reject('signError');
           } else {
             console.log(ret);
             if (ret && !ret.hasOwnProperty('error')) {
-              const webhook2 = {
-                'event': 'tx-confirmation',
-                'address': addressTo.address,
-                'url': `http://c2e8dfae.ngrok.io/api/trade/${addressTo.address}`,
-                confirmations: 6
-              };
-              ethapi.createHook(webhook2, () => {
-              });
+              // const webhook2 = {
+              //   event: 'tx-confirmation',
+              //   address: addressTo.address,
+              //   url: `http://c2e8dfae.ngrok.io/api/trade/${addressTo.address}`,
+              //   confirmations: 6
+              // };
+              // ethapi.createHook(webhook2, () => {
+              // });
               resolve(ret.tx.hash);
             } else {
               reject('sendError');

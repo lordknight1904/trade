@@ -21,8 +21,8 @@ import SignUpDialog from './components/Auth/SignUpDialog';
 import TransactionDetail from './components/TransactionDetail/TransactionDetail';
 
 import { closeNotify, fetchSettings } from './AppActions';
-import { getIsNotify, getMessage, getCoin, getDetail, getGoogleAuthentication, getGoogleSecret } from './AppReducer';
-import {  Modal, Table, Button, FormGroup, HelpBlock, FormControl } from 'react-bootstrap';
+import { getIsNotify, getMessage, getCoin, getGoogleAuthentication, getGoogleSecret } from './AppReducer';
+import { Modal, Row } from 'react-bootstrap';
 
 import { getBuyOrder, getSellOrder } from '../Exchange/ExchangeActions';
 import SocketController from './components/SocketController';
@@ -100,6 +100,7 @@ App.propTypes = {
   isNotify: PropTypes.bool.isRequired,
   googleAuthentication: PropTypes.bool.isRequired,
   googleSecret: PropTypes.object.isRequired,
+  message: PropTypes.string.isRequired,
 };
 
 // Retrieve data from store as props

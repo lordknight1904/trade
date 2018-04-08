@@ -51,7 +51,6 @@ export class SocketController extends Component {
           }
           case 'updateCoinBalance': {
             if (this.props.coin === message.coin) {
-              console.log(message);
               this.props.dispatch(updateTransaction({ _id: message.tx, confirmations: message.confirmations }));
               this.props.dispatch(getBalance(this.props.userName, message.coin));
             }

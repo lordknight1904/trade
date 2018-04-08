@@ -1,6 +1,6 @@
 import bcypher from 'blockcypher';
 
-const bcapi = new bcypher('bcy', 'test', 'bfb3f2a39e264f90a596afd2853edb10');
+const bcapi = new bcypher('bcy', 'test', '9f144d98e3f1497087b2c9f3381eb47b');
 
 import bigi from 'bigi';
 
@@ -23,24 +23,24 @@ export function getHash(txHash) {
 export function addressToAddressWithFee(userFrom, userTo, amount, fee, exchangeFee) {
   return new Promise((resolve) => {
     const newtx = {
-      inputs: [{addresses: [userFrom.address]}],
+      inputs: [{ addresses: [userFrom.address] }],
       outputs: [
-        {addresses: [userTo.address], value: Number(amount)}
+        { addresses: [userTo.address], value: Number(amount) },
       ],
-      fees: Number(fee)
+      fees: Number(fee),
     };
-    bcapi.newTX(newtx, function(err, data) {
+    bcapi.newTX(newtx, (err, data) => {
       if (err) {
         resolve({ code: 'error', error: err });
       } else {
         let keys = null;
         keys = new bitcoin.ECPair(bigi.fromHex(userFrom.private));
         data.pubkeys = [];
-        data.signatures = data.tosign.map( function(tosign) {
+        data.signatures = data.tosign.map((tosign) => {
           data.pubkeys.push(keys.getPublicKeyBuffer().toString('hex'));
           return keys.sign(new buffer.Buffer(tosign, 'hex')).toDER().toString('hex');
         });
-        bcapi.sendTX(data, function (err2, ret) {
+        bcapi.sendTX(data,(err2, ret) => {
           if (err2) {
             resolve({ code: 'error', error: err2 });
           } else {
@@ -103,25 +103,6 @@ export function getHold(id) {
 // create transaction, sign and send to the network
 // userFrom -> userTo
 //
-export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addressFee, feeTrade, feeNetwork) {
-  return new Promise((resolve, reject) => {
-    const amount = (orderSell.amountRemain <= orderBuy.amountRemain) ? orderSell.amountRemain : orderBuy.amountRemain;
-    if (amount < 7000) return;
-    if (amount < 4000000) {
-      microTransaction(userFrom, userTo, orderSell, orderBuy, addressFee, feeTrade, feeNetwork)
-        .catch((err) => {
-          reject(err);
-        })
-        .then(data => resolve(data))
-      return;
-    }
-    normalTransaction(userFrom, userTo, orderSell, orderBuy, addressFee, feeTrade, feeNetwork)
-      .catch((err) => {
-        reject(err);
-      })
-      .then(data => resolve(data))
-  });
-}
 function normalTransaction(userFrom, userTo, orderSell, orderBuy, addressFee, feeTrade, feeNetwork) {
   return new Promise((resolve, reject) => {
     const amount = (orderSell.amountRemain <= orderBuy.amountRemain) ? orderSell.amountRemain : orderBuy.amountRemain;
@@ -265,4 +246,24 @@ export function createHook(webhook) {
 }
 export function deleteHook(id) {
   bcapi.delHook(id, () => {});
+}
+
+export function transactionWithFee(userFrom, userTo, orderSell, orderBuy, addressFee, feeTrade, feeNetwork) {
+  return new Promise((resolve, reject) => {
+    const amount = (orderSell.amountRemain <= orderBuy.amountRemain) ? orderSell.amountRemain : orderBuy.amountRemain;
+    if (amount < 7000) return;
+    if (amount < 4000000) {
+      microTransaction(userFrom, userTo, orderSell, orderBuy, addressFee, feeTrade, feeNetwork)
+        .catch((err) => {
+          reject(err);
+        })
+        .then(data => resolve(data))
+      return;
+    }
+    normalTransaction(userFrom, userTo, orderSell, orderBuy, addressFee, feeTrade, feeNetwork)
+      .catch((err) => {
+        reject(err);
+      })
+      .then(data => resolve(data))
+  });
 }

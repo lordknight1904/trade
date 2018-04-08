@@ -5,6 +5,7 @@ export const ACTIONS = {
   BUY_ORDER_LIST: 'BUY_ORDER_LIST',
   SELL_ORDER_LIST: 'SELL_ORDER_LIST',
   UPDATE_RATE: 'UPDATE_RATE',
+  UPDATE_CHART_INDEX: 'UPDATE_CHART_INDEX',
 };
 
 export function createOrder(token, order) {
@@ -13,7 +14,13 @@ export function createOrder(token, order) {
       return res;
     });
   };
-};
+}
+export function updateChartIndex(chartIndex) {
+  return {
+    type: ACTIONS.UPDATE_CHART_INDEX,
+    chartIndex,
+  };
+}
 export function addBuyOrders(orders){
   return {
     type: ACTIONS.BUY_ORDER_LIST,
@@ -40,7 +47,7 @@ export function getSellOrder(coin) {
     });
   };
 }
-export function updateRate(rate){
+export function updateRate(rate) {
   return {
     type: ACTIONS.UPDATE_RATE,
     rate,

@@ -95,8 +95,8 @@ class Wallet extends Component{
                   <FormControl type="text" onChange={this.onAmount} placeholder="Amount" />
                 </FormGroup>
                 <p style={{ float: 'left' }}>Fee</p>
-                <p style={{ float: 'right'}}>{}</p>
-                <br/>
+                <p style={{ float: 'right' }}>{}</p>
+                <br />
                 <Button style={{ float: 'right' }} bsStyle="primary" bsSize="xsmall" disabled={this.state.isSending} onClick={this.sendCoin}>Submit</Button>
               </th>
               <th>

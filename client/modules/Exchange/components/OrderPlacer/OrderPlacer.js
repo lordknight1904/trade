@@ -8,9 +8,10 @@ import { createOrder } from '../../ExchangeActions';
 import style from '../../../App/App.css';
 import exchangeStyles from '../../pages/Exchange.css';
 import numeral from 'numeral';
+import { getRate } from '../../ExchangeReducer';
 
-class OrderPlacer extends Component{
-  constructor(props){
+class OrderPlacer extends Component {
+  constructor(props) {
     super(props);
     this.state = {
       type: 'buy',
@@ -21,8 +22,17 @@ class OrderPlacer extends Component{
       price: 0,
       oldSelectedOrder: {},
     };
+    this.fetched = false;
+  }
+  componentDidMount() {
   }
   componentWillReceiveProps(nextProps) {
+    const rate = this.props.rate[this.props.coin];
+    if (!this.fetched && rate && rate.hasOwnProperty('price')) {
+      console.log(rate);
+      this.setState({ price: rate.price });
+      this.fetched = true;
+    }
     if (this.state.oldSelectedOrder._id !== nextProps.selectedOrder._id) {
       const coin = this.props.coinList.filter((c) => { return c.name === nextProps.selectedOrder.coin; });
       const unit = (coin.length > 0) ? coin[0].unit : 0;
@@ -108,7 +118,7 @@ class OrderPlacer extends Component{
       } else {
         this.props.dispatch(setNotify(res.order.toString()));
       }
-    })
+    });
   };
   render() {
     const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; });
@@ -119,7 +129,7 @@ class OrderPlacer extends Component{
     const wallet2 = this.props.wallets['USDT'];
     const usdt = (wallet2 !== undefined) ? (wallet2.balance - wallet2.hold) : 'NaN';
 
-    const feeUsdtArr = this.props.settings.filter(set => {return set.name == 'feeUsdt';});
+    const feeUsdtArr = this.props.settings.filter(set => { return set.name === 'feeUsdt'; });
     const feeUsdt = (feeUsdtArr.length > 0) ? Number(feeUsdtArr[0].value) : 0;
 
     const total = numeral(this.state.amount).value() * numeral(this.state.price).value();
@@ -229,6 +239,7 @@ function mapStateToProps(state) {
     id: getId(state),
     coin: getCoin(state),
     coinList: getCoinList(state),
+    rate: getRate(state),
     wallets: getWallet(state),
     settings: getSettings(state),
   };
@@ -239,6 +250,7 @@ OrderPlacer.propTypes = {
   coin: PropTypes.string.isRequired,
   coinList: PropTypes.array.isRequired,
   settings: PropTypes.array.isRequired,
+  rate: PropTypes.object.isRequired,
   wallets: PropTypes.object.isRequired,
 };
 OrderPlacer.contextTypes = {

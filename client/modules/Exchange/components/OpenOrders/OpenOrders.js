@@ -39,7 +39,7 @@ class OpenOrders extends Component{
           <Col md={1} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
             Size
           </Col>
-          <Col md={1} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'center' }}>
+          <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'center' }}>
             {`Filled (${this.props.coin})`}
           </Col>
           <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
@@ -49,9 +49,9 @@ class OpenOrders extends Component{
             Network Fee
           </Col>
           <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
-            Fee Usdt
+            Fee USDT
           </Col>
-          <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
+          <Col md={1} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'right' }}>
             Time
           </Col>
           <Col md={2} className={exchangeStyles.panelHeaderTitle3} style={{ textAlign: 'center' }}>

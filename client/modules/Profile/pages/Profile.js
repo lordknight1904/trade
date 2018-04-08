@@ -146,70 +146,7 @@ class Profile extends Component{
         this.props.dispatch(setNotify('Your profile is being processed.'));
       }
     });
-  };
-
-  addInform = () => {
-    if (this.state.phone === '') {
-      this.props.dispatch(setNotify('Please provide security information.'));
-      return;
-    }
-    if (!this.props.approved) {
-      this.props.dispatch(setNotify('Please wait while security profile is being processed.'));
-      return;
-    }
-    this.setState({ inform: !this.state.inform });
-  };
-  onCoinSelect = (eventKey) => {
-    this.setState({ coin: eventKey });
-  };
-  handleMin = (event) => { this.setState({ min: event.target.value }); };
-  handleMax = (event) => { this.setState({ max: event.target.value }); };
-  onAddInform = () => {
-    if (this.state.coin === 'Select coin') {
-      this.props.dispatch(setNotify('Please select coin for price notification.'));
-      return;
-    }
-    if (this.state.min >= Number(this.props.rate[this.state.coin]) || this.state.max <= Number(this.props.rate[this.state.coin])) {
-      if (this.state.min >= Number(this.props.rate[this.state.coin]) && this.state.min !== '') {
-        this.props.dispatch(setNotify('Notify price must be lower than current price.'));
-        return;
-      }
-      if (this.state.max <= Number(this.props.rate[this.state.coin]) && this.state.max !== '') {
-        this.props.dispatch(setNotify('Notify price must be greater than current price.'));
-        return;
-      }
-    }
-    const inform = {
-      id: this.props.id,
-      coin: this.state.coin,
-      min: Number(this.state.min),
-      max: Number(this.state.max),
-    };
-    this.props.dispatch(addInform(inform)).then((res) => {
-      if (res.inform === 'success') {
-        this.setState({ min: '', max: '', coin: 'Select coin' });
-        this.props.dispatch(setNotify('Price notification placed.'));
-        this.props.dispatch(refetchUserProfile(res.user));
-      } else {
-        this.props.dispatch(setNotify('Price notification failed.'));
-      }
-    })
-  };
-  onDeleteInform = (informId) => {
-    const inform = {
-      id: this.props.id,
-      informId,
-    };
-    this.props.dispatch(deleteInform(inform)).then((res) => {
-      if (res.inform === 'success') {
-        this.setState({ min: 0, max: 0, coin: 'Select coin' });
-        this.props.dispatch(setNotify('Price notification canceled.'));
-        this.props.dispatch(refetchUserProfile(res.user));
-      } else {
-        this.props.dispatch(setNotify('Price notification failed.'));
-      }
-    });
-  };
+  };c
   onUpload = (e) => {
     e.preventDefault();
     const reader = new FileReader();
@@ -317,72 +254,6 @@ class Profile extends Component{
               }
               </td>
             </tr>
-
-            <tr>
-              <td>Price notification</td>
-              <td>
-                <Button bsStyle="success" bsSize="xsmall" onClick={this.addInform}>{this.state.inform ? '-' : '+'}</Button>
-              </td>
-            </tr>
-            {
-              this.state.inform ? (
-                  <tr>
-                    <td />
-                    <td style={{ display: 'table' }} className={appStyles.profileTableDisplay}>
-                      <DropdownButton title={this.state.coin} id="coin-seletec-dropdown" onSelect={this.onCoinSelect} style={{ display: 'table-cell', width: '100%' }}>
-                        <MenuItem eventKey='Select coin'>Coin</MenuItem>
-                        {
-                          this.props.coinList.map((coin, index) => (
-                            <MenuItem key={`${index}CoinSelect`} eventKey={coin.name}>{coin.name}</MenuItem>
-                          ))
-                        }
-                      </DropdownButton>
-                      <FormControl
-                        type="text"
-                        value={this.state.min}
-                        placeholder="lower"
-                        onChange={this.handleMin}
-                        style={{ display: 'table-cell', width: '20%' }}
-                      />
-                      <FormControl
-                        type="text"
-                        value={`Current price ${this.props.rate[this.state.coin] ? numeral(this.props.rate[this.state.coin].price).format('0,0') : '~'}`}
-                        style={{ display: 'table-cell', width: '20%' }}
-                        disabled
-                      />
-                      <FormControl
-                        type="text"
-                        value={this.state.max}
-                        placeholder="greater"
-                        style={{ display: 'table-cell', width: '20%' }}
-                        onChange={this.handleMax}
-                      />
-                      <Button bsStyle="success" onClick={this.onAddInform} style={{ width: '20%' }}>Add</Button>
-                    </td>
-                  </tr>
-                ) : ''
-            }
-            {
-              (this.props.requireInform.length > 0) ? (
-                  <tr>
-                    <td>Price notifications</td>
-                    <td>
-                      {
-                        this.props.requireInform.map((inform, index) => (
-                          <div key={`${index}Inform`} style={{ height: '35px', verticalAlign: 'middle', lineHeight: '35px' }}>
-                            <div style={{ display: 'inline' }}>
-                              {`Notify when ${inform.coin} ${(inform.max === 0) ? `lower than ${inform.min}` : `greater than ${inform.max}`}`}
-                            </div>
-                            <div style={{ display: 'inline', paddingTop: '5px', float: 'right' }}>
-                            <Button bsSize="xs" bsStyle="danger" onClick={() => this.onDeleteInform(inform._id)} style={{ width: '100%' }}>Delete</Button>
-                            </div>
-                          </div>
-                        ))
-                      }
-                    </td>
-                  </tr>
-                ) : ''
-            }
           </tbody>
         </Table>
 

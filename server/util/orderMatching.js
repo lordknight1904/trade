@@ -44,8 +44,66 @@ function updateOrders(order1, order2, amount1, amount2, callback) {
     callback(err, result.order1, result.order2);
   });
 }
+export function orderMatching(coin) {
+  Order.aggregate([
+    {
+      $match: {
+        stage: 'open',
+        coin,
+      },
+    },
+    { $sort: { price: -1, dateCreated: -1 } },
+    {
+      $group: {
+        _id: '$type',
+        order: {
+          $push: {
+            _id: '$_id',
+            userId: '$userId',
+            type: '$type',
+            coin: '$coin',
+            price: '$price',
+            amount: '$amount',
+            amountRemain: '$amountRemain',
+            dateCreated: '$dateCreated',
+            stage: '$stage',
+          },
+        },
+        max: { $max: '$price' },
+        min: { $min: '$price' },
+      },
+    },
+  ]).exec((err, order) => {
+    if (err) {
+      // ordersAndHold({ coin: coin });
+    } else {
+      const arr = order.filter((o) => { return o._id === 'sell' });
+      const arr2 = order.filter((o) => { return o._id === 'buy' });
+      const sell = (arr.length > 0) ? arr[0].order : [];
+      const buy = (arr2.length > 0) ? arr2[0].order : [];
+      running = false;
+      if (buy.length === 0 || sell.length === 0) {
+        return;
+      }
+      sell.reverse();
+      buy.map((b) => {
+        sell.map((s) => {
+          if (b.price >= s.price) {
+            if (!running && b.userId.toString() !== s.userId.toString()) {
+              makeTransactionOrderToOrder(s, b);
+              running = true;
+              return;
+            }
+          } else {
+            return;
+          }
+        });
+      });
+    }
+  });
+}
 export function startOrderMatching(coin, userId) {
-  ordersAndHold({ coin: coin, idFrom: userId, idTo: '' });
+  ordersAndHold({ coin, idFrom: userId, idTo: '' });
   if (!running) {
     orderMatching(coin);
     running = true;
@@ -53,13 +111,11 @@ export function startOrderMatching(coin, userId) {
 }
 function makeTransactionOrderToOrder(s, b) {
   Setting.find((errSetting, setting) => {
-    if (errSetting) {
-      return;
-    } else {
-      let feeNetwork = setting.filter(set => {return set.name == `feeNetwork${s.coin}`;});
-      let feeUsdt = setting.filter(set => {return set.name == 'feeUsdt'; });
-      let feeCoin = setting.filter(set => {return set.name == `feeCoin${s.coin}`;});
-      let addressCoin =  setting.filter(set => {return set.name == `addressCoin${s.coin}`;});
+    if (!errSetting) {
+      let feeNetwork = setting.filter(set => { return set.name === `feeNetwork${s.coin}`; });
+      let feeUsdt = setting.filter(set => { return set.name === 'feeUsdt'; });
+      let feeCoin = setting.filter(set => { return set.name === `feeCoin${s.coin}`; });
+      let addressCoin = setting.filter(set => { return set.name === `addressCoin${s.coin}`; });
       let api = {};
       if (feeNetwork.length === 0) return;
       if (feeUsdt.length === 0) return;
@@ -91,126 +147,78 @@ function makeTransactionOrderToOrder(s, b) {
           _id: {
             $in: [
               mongoose.Types.ObjectId(s._id),
-              mongoose.Types.ObjectId(b._id)
-            ]
+              mongoose.Types.ObjectId(b._id),
+            ],
           },
         },
         { stage: 'trading' })
         .exec((errUpdate) => {
           if (errUpdate) {
+            console.log(errUpdate);
           } else {
             console.log(`khớp lệnh với giá ${b.price} ${s.price}`);
-            findUsers(s, b,(err2, userFrom, userTo) => {
+            findUsers(s, b, (err2, userFrom, userTo) => {
               if (!err2) {
                 api.transactionWithFee(userFrom, userTo, s, b, addressCoin[0].value, feeCoin[0].value, feeNetwork[0].value)
-                .catch((err) => {
-                  ordersAndHold({coin: s.coin, idFrom: userFrom._id, idTo: userTo._id});
-                })
-                .then((tx) => {
-                  const amount1 = s.amountRemain - amount;
-                  const amount2 = b.amountRemain - amount;
-                  updateOrders(s, b, amount1, amount2, () => {
-                    ordersAndHold({coin: s.coin, idFrom: userFrom._id, idTo: userTo._id});
-                    orderMatching(s.coin);
-                    const transaction = new Transaction({
-                      from: userFrom._id,
-                      to: userTo._id,
-                      amount,
-                      price: s.price,
-                      feeCoin: tx.fee,
-                      feeUsdt: amount / unit * numeral(b.price).value() * feeUsdt[0].value / 100,
-                      coin: s.coin,
-                      txCoin: tx.txHash,
-                    });
-                    User.updateMany(
-                      {_id: {$in: [s._id, b._id]},},
-                      {$push: {transactions: transaction._id}},
-                      {upsert: true, new: true, setDefaultsOnInsert: true}
-                    ).exec(() => {});
+                  .catch((err) => {
+                    ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id });
+                  })
+                  .then((tx) => {
+                    const amount1 = s.amountRemain - amount;
+                    const amount2 = b.amountRemain - amount;
+                    updateOrders(s, b, amount1, amount2, () => {
+                      ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id });
+                      orderMatching(s.coin);
+                      const transaction = new Transaction({
+                        from: userFrom._id,
+                        to: userTo._id,
+                        amount,
+                        price: s.price,
+                        feeCoin: tx.fee,
+                        feeUsdt: amount / unit * numeral(b.price).value() * feeUsdt[0].value / 100,
+                        coin: s.coin,
+                        txCoin: tx.txHash,
+                      });
+                      User.updateMany(
+                        { _id: { $in: [s._id, b._id] } },
+                        { $push: { transactions: transaction._id } },
+                        { upsert: true, new: true, setDefaultsOnInsert: true }
+                      ).exec(() => {});
 
-                    const at = userTo.addresses.filter((a) => {
-                      return a.coin === b.coin;
-                    });
-                    const addressTo = (at.length > 0) ? at[0] : [];
-                    const webhook = {
-                      'event': 'tx-confirmation',
-                      'address': addressTo.address,
-                      'url': `http://124753d4.ngrok.io/api/order/done/${s.coin}/${userTo.userName}/${transaction._id}`,
-                      confirmations: 6
-                    };
-                    api.createHook(webhook);
-                    console.log(`http://a3409b11.ngrok.io/api/order/done/${s.coin}/${userTo.userName}/${transaction._id}`);
-                    transaction.save((err) => {
-                      if (err) console.log(err);
-                      // scanInformRequire(s.coin);
-                      ordersAndHold({coin: s.coin, idFrom: userFrom._id, idTo: userTo._id});
+                      const at = userTo.addresses.filter((a) => {
+                        return a.coin === b.coin;
+                      });
+                      const addressTo = (at.length > 0) ? at[0] : [];
+                      const webhook = {
+                        event: 'tx-confirmation',
+                        address: addressTo.address,
+                        url: `http://124753d4.ngrok.io/api/order/done/${s.coin}/${userTo.userName}/${transaction._id}`,
+                        confirmations: 6
+                      };
+                      switch (s.coin) {
+                        case 'LTC':
+                        case 'BTC': {
+                          api.createHook(webhook);
+                          break;
+                        }
+                        case 'ETH': {
+                          break;
+                        }
+                        default: break;
+                      }
+                      transaction.save((err) => {
+                        if (err) console.log(err);
+                        // scanInformRequire(s.coin);
+                        ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id });
+                      });
                     });
                   });
-                });
               } else {
-                ordersAndHold({coin: s.coin, idFrom: userFrom._id, idTo: userTo._id});
+                ordersAndHold({ coin: s.coin, idFrom: userFrom._id, idTo: userTo._id });
               }
             });
           }
-        })
-    }
-  });
-}
-export function orderMatching(coin) {
-  Order.aggregate([
-    {
-      $match: {
-        stage: 'open',
-        coin: coin,
-      },
-    },
-    { $sort: { 'price': -1, 'dateCreated': -1 } },
-    {
-      $group: {
-        _id: '$type',
-        order: {
-          $push: {
-            _id: '$_id',
-            userId: '$userId',
-            type: '$type',
-            coin: '$coin',
-            price: '$price',
-            amount: '$amount',
-            amountRemain: '$amountRemain',
-            dateCreated: '$dateCreated',
-            stage: '$stage',
-          }
-        },
-        max: { $max: '$price' },
-        min: { $min: '$price' }
-      }
-    },
-  ]).exec((err, order) => {
-    if (err) {
-      // ordersAndHold({ coin: coin });
-    } else {
-      const arr = order.filter((o) => { return o._id === 'sell'});
-      const arr2 = order.filter((o) => { return o._id === 'buy'});
-      const sell = (arr.length > 0) ? arr[0].order : [];
-      const buy = (arr2.length > 0) ? arr2[0].order : [];
-      running = false;
-      if (buy.length === 0 || sell.length === 0) {
-        return;
-      }
-      sell.reverse();
-      buy.map((b) => {
-        sell.map((s) => {
-          if (b.price >= s.price) {
-            if (!running && b.userId.toString() !== s.userId.toString()) {
-              makeTransactionOrderToOrder(s, b);
-              running = true;
-              return;
-            }
-          } else {
-            return;
-          }
         });
-      });
     }
   });
 }

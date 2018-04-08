@@ -5,10 +5,10 @@ import { Navbar, Nav, NavItem, MenuItem, NavDropdown, Col, Image, Glyphicon, Bad
 import styles from './Header.css';
 import { onSignIn, onSignUp, logout, changeCoin, addOpen, getMyOrders } from '../../AppActions';
 import { getSignIn, getSignUp, getUserName, getId, getCoin } from '../../AppReducer';
-import { getBuyOrder, getSellOrder, addBuyOrders, addSellOrders } from '../../../Exchange/ExchangeActions';
+import { getBuyOrder, getSellOrder, addBuyOrders, addSellOrders, fetchRate } from '../../../Exchange/ExchangeActions';
 
-class Header extends Component{
-  constructor(props){
+class Header extends Component {
+  constructor(props) {
     super(props);
     this.state = {
       value: 'en',
@@ -71,6 +71,7 @@ class Header extends Component{
   };
   handleCoin = (eventKey) => {
     this.props.dispatch(changeCoin(eventKey));
+    this.props.dispatch(fetchRate(eventKey));
     this.props.dispatch(addBuyOrders([]));
     this.props.dispatch(addSellOrders([]));
     if (this.props.id !== '') {
@@ -90,7 +91,7 @@ class Header extends Component{
   }
 
   chuyenPage = () => {
-    window.open('http://125.212.253.77:9000', '_blank');
+    window.open('http://market.hotcoinex.com', '_blank');
   };
   render() {
     return (
@@ -106,13 +107,12 @@ class Header extends Component{
         <Navbar.Collapse>
           <Nav className={styles.noneBlue} onSelect={this.handleCoin}>
             <NavDropdown title={this.props.coin} id="basic-nav-dropdown">
-              <MenuItem eventKey="BTC"><Glyphicon glyph="glyphicon glyphicon-btc" />   BTC</MenuItem>
-              {/*<MenuItem eventKey="DASH"><Glyphicon glyph="cf-dash" />   DASH</MenuItem>*/}
-              <MenuItem eventKey="ETH"><Glyphicon glyph="glyphicon glyphicon-credit-card" />   ETH</MenuItem>
+              <MenuItem eventKey="BTC">BTC</MenuItem>
+              <MenuItem eventKey="ETH">ETH</MenuItem>
             </NavDropdown>
           </Nav>
           <Nav pullRight onSelect={this.chuyenPage}>
-            <NavItem>Hotcoin Market</NavItem>
+            <NavItem>VND Exchange</NavItem>
           </Nav>
           {
             (this.props.userName === '') ? (

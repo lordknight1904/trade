@@ -11,8 +11,8 @@ import { fetchRate } from '../../ExchangeActions';
 import exchangeStyles from '../../pages/Exchange.css';
 import numeral from 'numeral';
 
-class OrderList extends Component{
-  constructor(props){
+class OrderList extends Component {
+  constructor(props) {
     super(props);
     this.state = {
     };
@@ -20,7 +20,7 @@ class OrderList extends Component{
   componentDidMount() {
     this.props.dispatch(fetchRate(this.props.coin));
   }
-  render(){
+  render() {
     const coin = this.props.coinList.filter((c) => { return c.name === this.props.coin; });
     const unit = (coin.length > 0) ? coin[0].unit : 0;
     const rate = this.props.rate[this.props.coin];
@@ -39,7 +39,7 @@ class OrderList extends Component{
             ORDER BOOK
           </div>
         </Col>
-        <hr/>
+        <hr />
         <Col md={12} style={{ height: 'calc(100vh - 109px)'}}>
           <div className={`row ${exchangeStyles.panelHeader2}`} >
             <Col className={`${exchangeStyles.panelHeaderTitle2}`} style={{ textAlign: 'right' }} md={2} >
@@ -56,14 +56,15 @@ class OrderList extends Component{
             </Col>
           </div>
           <div className="row" style={{ height: 'calc(50% - 40px)' }}>
-            <Col md={12}
-                 style={{
-                   backgroundColor: '#1e2b34',
-                   height: '100%',
-                   overflowY: 'hidden',
-                   display: 'flex',
-                   flexDirection: 'column-reverse'
-                 }}
+            <Col
+              md={12}
+              style={{
+                backgroundColor: '#1e2b34',
+                height: '100%',
+                overflowY: 'hidden',
+                display: 'flex',
+                flexDirection: 'column-reverse',
+              }}
             >
               {
                 this.props.sellOrders.map((o, index) => {
@@ -75,8 +76,7 @@ class OrderList extends Component{
                   });
                   return (
                     <div className={`row ${exchangeStyles.orderRow}`} key={index} onClick={() => this.props.onOrderClick(o)} style={{ cursor: 'pointer' }} >
-                      <Col md={2} style={{ color: '#d6d8da', textAlign: 'right' }}>
-                      </Col>
+                      <Col md={2} style={{ color: '#d6d8da', textAlign: 'right' }} />
                       <Col md={4} style={{ color: '#d6d8da', textAlign: 'right' }}>
                         {numeral(o.amountRemain / unit).format('0,0.[000000]')}
                       </Col>
@@ -92,18 +92,18 @@ class OrderList extends Component{
               }
             </Col>
           </div>
-          <div className={`row`}>
-            <Col md={3} style={{ color: '#d6d8da', textAlign: 'right' }}>
+          <div className={'row'}>
+            <Col md={3} xs={3} style={{ color: '#d6d8da', textAlign: 'right' }}>
               Matched
             </Col>
-            <Col md={3} style={{ color: '#d6d8da', textAlign: 'right' }}>
-              {(rate && rate.hasOwnProperty('volume')) ? numeral(rate.volume/unit).value() : '~'}
+            <Col md={3} xs={3} style={{ color: '#d6d8da', textAlign: 'right' }}>
+              {(rate && rate.hasOwnProperty('volume')) ? numeral(rate.volume / unit).value() : '~'}
             </Col>
-            <Col md={3} style={{ color: '#d6d8da', textAlign: 'right' }}>
+            <Col md={3} xs={3} style={{ color: '#d6d8da', textAlign: 'right' }}>
               {(rate && rate.hasOwnProperty('price')) ? numeral(rate.price).format('0,0.[000000]') : '~'}
             </Col>
-            <Col md={3} style={{ color: '#d6d8da', textAlign: 'right' }}>
-              {numeral(my.volume/unit).value()}
+            <Col md={3} xs={3} style={{ color: '#d6d8da', textAlign: 'right' }}>
+              {numeral(my.volume / unit).value()}
             </Col>
           </div>
           <div className="row" style={{ height: 'calc(50% - 40px)'}}>

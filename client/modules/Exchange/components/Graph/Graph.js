@@ -1,18 +1,11 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Panel, Form, InputGroup, Col, ControlLabel, Tabs, Tab, Nav, NavItem, FormGroup, FormControl, HelpBlock, Button  } from 'react-bootstrap';
-import { onSignIn, onSignUp, setNotify } from '../../../App/AppActions';
-import { getId, getCoinList, getCoin, getWallet } from '../../../App/AppReducer';
-import { createOrder } from '../../ExchangeActions';
-import style from '../../../App/App.css';
-import exchangeStyles from '../../pages/Exchange.css';
-import numeral from 'numeral';
 import ReactFC from 'react-fusioncharts';
 import PowerCharts from 'fusioncharts/fusioncharts.powercharts';
 
-class Graph extends Component{
-  constructor(props){
+class Graph extends Component {
+  constructor(props) {
     super(props);
     this.state = {
       mounted: false,
